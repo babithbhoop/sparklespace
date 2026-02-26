@@ -184,21 +184,21 @@ async function sendEmail({ to, cc, subject, htmlBody, settings }) {
 function buildEmailHTML({ greeting, sections, cta, footer }) {
   const sectionHTML = sections.map(s => 
     `<div style="margin-bottom:16px;">` +
-    (s.title ? `<div style="font-weight:700;color:#7C3AED;font-size:14px;margin-bottom:6px;">${s.title}</div>` : "") +
+    (s.title ? `<div style="font-weight:700;color:#D6006E;font-size:14px;margin-bottom:6px;">${s.title}</div>` : "") +
     `<div style="color:#444;font-size:13px;line-height:1.6;white-space:pre-line;">${s.content}</div>` +
     `</div>`
   ).join("");
 
   return `
     <div style="font-family:sans-serif;max-width:520px;margin:0 auto;padding:24px;">
-      <div style="background:linear-gradient(135deg,#FF6B9D,#C084FC,#60A5FA);padding:20px 24px;border-radius:16px 16px 0 0;color:#fff;">
+      <div style="background:linear-gradient(135deg,#FF1493,#FF69B4,#FF85C8);padding:20px 24px;border-radius:16px 16px 0 0;color:#fff;">
         <h1 style="margin:0;font-size:20px;">✨ SparkleSpace</h1>
         <p style="margin:4px 0 0;font-size:12px;opacity:0.9;">by Thea • Organization Magic</p>
       </div>
       <div style="background:#fff;padding:24px;border:1px solid #eee;border-top:none;border-radius:0 0 16px 16px;">
         <p style="font-size:15px;color:#333;margin:0 0 16px;">${greeting}</p>
         ${sectionHTML}
-        ${cta ? `<div style="background:linear-gradient(135deg,#FFF5F7,#F3E8FF);border-radius:12px;padding:14px;text-align:center;margin:16px 0;font-size:14px;font-weight:700;color:#7C3AED;">${cta}</div>` : ""}
+        ${cta ? `<div style="background:linear-gradient(135deg,#FFF0F5,#FFE4F0);border-radius:12px;padding:14px;text-align:center;margin:16px 0;font-size:14px;font-weight:700;color:#D6006E;">${cta}</div>` : ""}
         <div style="border-top:1px solid #eee;padding-top:16px;margin-top:16px;font-size:12px;color:#888;line-height:1.5;">
           ${footer || `✨ Thea<br>SparkleSpace Organization<br>📱 ${THEA_PHONE}<br>📧 ${THEA_EMAIL}`}
         </div>
@@ -411,8 +411,8 @@ export default function SparkleSpaceApp() {
   ];
 
   return (
-    <div style={{ minHeight: "100vh", background: "linear-gradient(135deg, #FFF5F7 0%, #FFF0E5 30%, #F0F7FF 70%, #F5F0FF 100%)", fontFamily: "'DM Sans', sans-serif" }}>
-      <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet" />
+    <div style={{ minHeight: "100vh", background: "linear-gradient(135deg, #FFF0F5 0%, #FFF0E5 30%, #F0F7FF 70%, #F5F0FF 100%)", fontFamily: "'Poppins', sans-serif" }}>
+      <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet" />
       
       {toast && (
         <div style={{ position: "fixed", top: 20, left: "50%", transform: "translateX(-50%)", zIndex: 9999, background: toast.type === "success" ? "#10B981" : "#EF4444", color: "#fff", padding: "12px 24px", borderRadius: 16, fontWeight: 600, boxShadow: "0 8px 30px rgba(0,0,0,0.15)", animation: "slideDown 0.3s ease" }}>
@@ -420,10 +420,10 @@ export default function SparkleSpaceApp() {
         </div>
       )}
 
-      <header style={{ background: "linear-gradient(135deg, #FF6B9D 0%, #C084FC 50%, #60A5FA 100%)", padding: "16px 20px", color: "#fff", position: "sticky", top: 0, zIndex: 100, boxShadow: "0 4px 20px rgba(192,132,252,0.3)" }}>
+      <header style={{ background: "linear-gradient(135deg, #FF1493 0%, #FF69B4 40%, #FF85C8 100%)", padding: "16px 20px", color: "#fff", position: "sticky", top: 0, zIndex: 100, boxShadow: "0 4px 20px rgba(255,20,147,0.3)" }}>
         <div style={{ maxWidth: 600, margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div>
-            <h1 style={{ fontFamily: "'Outfit', sans-serif", fontSize: 24, fontWeight: 800, margin: 0, letterSpacing: -0.5 }}>✨ SparkleSpace</h1>
+            <h1 style={{ fontFamily: "'Sora', sans-serif", fontSize: 24, fontWeight: 800, margin: 0, letterSpacing: -0.5 }}>✨ SparkleSpace</h1>
             <p style={{ fontSize: 11, opacity: 0.9, margin: 0, fontWeight: 500 }}>
               by Thea • Organization Magic
               {dbConnected && <span style={{ marginLeft: 6, fontSize: 9, background: "rgba(255,255,255,0.3)", padding: "1px 6px", borderRadius: 8 }}>{syncing ? "⏳ syncing..." : "☁️ cloud"}</span>}
@@ -447,9 +447,9 @@ export default function SparkleSpaceApp() {
       <nav style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: "rgba(255,255,255,0.95)", backdropFilter: "blur(20px)", borderTop: "1px solid rgba(0,0,0,0.06)", padding: "8px 0 max(8px, env(safe-area-inset-bottom))", zIndex: 100 }}>
         <div style={{ maxWidth: 600, margin: "0 auto", display: "flex", justifyContent: "space-around" }}>
           {navItems.map((item) => (
-            <button key={item.id} onClick={() => setCurrentView(item.id)} style={{ background: "none", border: "none", display: "flex", flexDirection: "column", alignItems: "center", gap: 2, cursor: "pointer", padding: "4px 12px", borderRadius: 12, transition: "all 0.2s", ...(currentView === item.id ? { background: "linear-gradient(135deg, #FFE0EC, #E8D5FF)", transform: "scale(1.05)" } : {}) }}>
+            <button key={item.id} onClick={() => setCurrentView(item.id)} style={{ background: "none", border: "none", display: "flex", flexDirection: "column", alignItems: "center", gap: 2, cursor: "pointer", padding: "4px 12px", borderRadius: 12, transition: "all 0.2s", ...(currentView === item.id ? { background: "linear-gradient(135deg, #FFD6E8, #FFE4F0)", transform: "scale(1.05)" } : {}) }}>
               <span style={{ fontSize: 20 }}>{item.emoji}</span>
-              <span style={{ fontSize: 10, fontWeight: currentView === item.id ? 700 : 500, color: currentView === item.id ? "#C084FC" : "#999" }}>{item.label}</span>
+              <span style={{ fontSize: 10, fontWeight: currentView === item.id ? 700 : 500, color: currentView === item.id ? "#FF69B4" : "#999" }}>{item.label}</span>
             </button>
           ))}
         </div>
@@ -459,7 +459,7 @@ export default function SparkleSpaceApp() {
         @keyframes slideDown { from { opacity: 0; transform: translate(-50%, -20px); } to { opacity: 1; transform: translate(-50%, 0); } }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         * { box-sizing: border-box; }
-        input, textarea, select { font-family: 'DM Sans', sans-serif; }
+        input, textarea, select { font-family: 'Poppins', sans-serif; }
         button { transition: all 0.15s ease; }
         button:active { transform: scale(0.97); }
         ::-webkit-scrollbar { width: 4px; }
@@ -482,7 +482,7 @@ function Input({ label, ...props }) {
   return (
     <div style={{ marginBottom: 14 }}>
       {label && <label style={{ fontSize: 12, fontWeight: 600, color: "#666", marginBottom: 4, display: "block" }}>{label}</label>}
-      <input {...props} style={{ width: "100%", padding: "10px 14px", borderRadius: 12, border: "2px solid #F0E6FF", fontSize: 14, outline: "none", transition: "border-color 0.2s", background: "#FDFBFF", ...props.style }} onFocus={(e) => e.target.style.borderColor = "#C084FC"} onBlur={(e) => e.target.style.borderColor = "#F0E6FF"} />
+      <input {...props} style={{ width: "100%", padding: "10px 14px", borderRadius: 12, border: "2px solid #FFD6E8", fontSize: 14, outline: "none", transition: "border-color 0.2s", background: "#FFF5F8", ...props.style }} onFocus={(e) => e.target.style.borderColor = "#FF69B4"} onBlur={(e) => e.target.style.borderColor = "#FFD6E8"} />
     </div>
   );
 }
@@ -491,7 +491,7 @@ function TextArea({ label, ...props }) {
   return (
     <div style={{ marginBottom: 14 }}>
       {label && <label style={{ fontSize: 12, fontWeight: 600, color: "#666", marginBottom: 4, display: "block" }}>{label}</label>}
-      <textarea {...props} style={{ width: "100%", padding: "10px 14px", borderRadius: 12, border: "2px solid #F0E6FF", fontSize: 14, outline: "none", minHeight: 80, resize: "vertical", background: "#FDFBFF", ...props.style }} onFocus={(e) => e.target.style.borderColor = "#C084FC"} onBlur={(e) => e.target.style.borderColor = "#F0E6FF"} />
+      <textarea {...props} style={{ width: "100%", padding: "10px 14px", borderRadius: 12, border: "2px solid #FFD6E8", fontSize: 14, outline: "none", minHeight: 80, resize: "vertical", background: "#FFF5F8", ...props.style }} onFocus={(e) => e.target.style.borderColor = "#FF69B4"} onBlur={(e) => e.target.style.borderColor = "#FFD6E8"} />
     </div>
   );
 }
@@ -500,7 +500,7 @@ function Select({ label, options, ...props }) {
   return (
     <div style={{ marginBottom: 14 }}>
       {label && <label style={{ fontSize: 12, fontWeight: 600, color: "#666", marginBottom: 4, display: "block" }}>{label}</label>}
-      <select {...props} style={{ width: "100%", padding: "10px 14px", borderRadius: 12, border: "2px solid #F0E6FF", fontSize: 14, outline: "none", background: "#FDFBFF", cursor: "pointer", ...props.style }}>
+      <select {...props} style={{ width: "100%", padding: "10px 14px", borderRadius: 12, border: "2px solid #FFD6E8", fontSize: 14, outline: "none", background: "#FFF5F8", cursor: "pointer", ...props.style }}>
         {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
       </select>
     </div>
@@ -509,13 +509,13 @@ function Select({ label, options, ...props }) {
 
 function GradientButton({ children, onClick, style = {}, variant = "primary" }) {
   const styles = {
-    primary: { background: "linear-gradient(135deg, #FF6B9D, #C084FC)", color: "#fff" },
-    secondary: { background: "linear-gradient(135deg, #E0E7FF, #F3E8FF)", color: "#6B21A8" },
+    primary: { background: "linear-gradient(135deg, #FF1493, #FF69B4)", color: "#fff" },
+    secondary: { background: "linear-gradient(135deg, #FFE4F0, #FFD6E8)", color: "#B5005A" },
     success: { background: "linear-gradient(135deg, #34D399, #60A5FA)", color: "#fff" },
     danger: { background: "linear-gradient(135deg, #FB7185, #F43F5E)", color: "#fff" },
   };
   return (
-    <button onClick={onClick} style={{ border: "none", borderRadius: 14, padding: "12px 24px", fontWeight: 700, fontSize: 14, cursor: "pointer", width: "100%", fontFamily: "'DM Sans', sans-serif", ...styles[variant], ...style }}>
+    <button onClick={onClick} style={{ border: "none", borderRadius: 14, padding: "12px 24px", fontWeight: 700, fontSize: 14, cursor: "pointer", width: "100%", fontFamily: "'Poppins', sans-serif", ...styles[variant], ...style }}>
       {children}
     </button>
   );
@@ -531,59 +531,246 @@ function StatusBadge({ status }) {
 }
 
 function PhotoUpload({ photos = [], onPhotosChange, label, jobName, spaceType, photoType }) {
-  const fileRef = useRef(null);
+  const galleryRef = useRef(null);
+  const cameraRef = useRef(null);
+  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
+  const [cameraOpen, setCameraOpen] = useState(false);
+  const [cameraStream, setCameraStream] = useState(null);
+  const [facingMode, setFacingMode] = useState("environment");
+  const [cameraError, setCameraError] = useState("");
+  const [flashEffect, setFlashEffect] = useState(false);
+  const [capturedPreview, setCapturedPreview] = useState(null);
+
+  const makeFilename = (ext = ".jpg") => {
+    const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+    const safeName = (jobName || "job").replace(/[^a-zA-Z0-9]/g, "-").slice(0, 20);
+    const safeSpace = (spaceType || "space").replace(/[^a-zA-Z0-9]/g, "-").slice(0, 15);
+    return `SparkleSpace_${safeName}_${safeSpace}_${photoType || "photo"}_${timestamp}${ext}`;
+  };
+
+  const addPhoto = (dataUrl, originalName = "camera-photo.jpg") => {
+    onPhotosChange([...photos, {
+      id: generateId(),
+      url: dataUrl,
+      timestamp: new Date().toISOString(),
+      originalName,
+      descriptiveFilename: makeFilename(originalName.match(/\.[^.]+$/)?.[0] || ".jpg"),
+      gdriveUrl: "",
+    }]);
+  };
+
   const handleFiles = (e) => {
     const files = Array.from(e.target.files);
     files.forEach(file => {
       const reader = new FileReader();
-      reader.onload = (ev) => {
-        // Generate a descriptive filename for GDrive lookup
-        const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
-        const safeName = (jobName || "job").replace(/[^a-zA-Z0-9]/g, "-").slice(0, 20);
-        const safeSpace = (spaceType || "space").replace(/[^a-zA-Z0-9]/g, "-").slice(0, 15);
-        const descriptiveFilename = `SparkleSpace_${safeName}_${safeSpace}_${photoType || "photo"}_${timestamp}${file.name.match(/\.[^.]+$/)?.[0] || ".jpg"}`;
-        
-        onPhotosChange([...photos, {
-          id: generateId(),
-          url: ev.target.result,
-          timestamp: new Date().toISOString(),
-          originalName: file.name,
-          descriptiveFilename,
-          gdriveUrl: "", // filled in when uploaded to GDrive
-        }]);
-      };
+      reader.onload = (ev) => addPhoto(ev.target.result, file.name);
       reader.readAsDataURL(file);
     });
+    e.target.value = "";
   };
+
+  const openCamera = async () => {
+    setCameraError("");
+    setCapturedPreview(null);
+    setCameraOpen(true);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode, width: { ideal: 1920 }, height: { ideal: 1080 } },
+        audio: false
+      });
+      setCameraStream(stream);
+      setTimeout(() => {
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          videoRef.current.play().catch(() => {});
+        }
+      }, 100);
+    } catch (err) {
+      if (err.name === "NotAllowedError" || err.name === "NotFoundError") {
+        setCameraError("camera");
+        // Fallback: use native file input with capture
+        setCameraOpen(false);
+        if (cameraRef.current) cameraRef.current.click();
+      } else {
+        setCameraError("Could not access camera: " + err.message);
+      }
+    }
+  };
+
+  const stopCamera = () => {
+    if (cameraStream) {
+      cameraStream.getTracks().forEach(t => t.stop());
+      setCameraStream(null);
+    }
+    setCameraOpen(false);
+    setCapturedPreview(null);
+  };
+
+  const flipCamera = async () => {
+    const newMode = facingMode === "environment" ? "user" : "environment";
+    setFacingMode(newMode);
+    if (cameraStream) {
+      cameraStream.getTracks().forEach(t => t.stop());
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: newMode, width: { ideal: 1920 }, height: { ideal: 1080 } },
+        audio: false
+      });
+      setCameraStream(stream);
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        videoRef.current.play().catch(() => {});
+      }
+    } catch (err) {
+      setCameraError("Could not switch camera");
+    }
+  };
+
+  const capturePhoto = () => {
+    if (!videoRef.current || !canvasRef.current) return;
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(video, 0, 0);
+    const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+    // Flash animation
+    setFlashEffect(true);
+    setTimeout(() => setFlashEffect(false), 200);
+    setCapturedPreview(dataUrl);
+  };
+
+  const acceptPhoto = () => {
+    if (capturedPreview) {
+      addPhoto(capturedPreview, "camera-snap.jpg");
+      setCapturedPreview(null);
+    }
+  };
+
+  const retakePhoto = () => {
+    setCapturedPreview(null);
+  };
+
   const removePhoto = (id) => onPhotosChange(photos.filter(p => p.id !== id));
-  
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (cameraStream) cameraStream.getTracks().forEach(t => t.stop());
+    };
+  }, [cameraStream]);
+
   const gdriveConfig = getGDriveConfig();
   const hasGDrive = gdriveConfig?.folderUrl;
-  
+
   return (
     <div style={{ marginBottom: 14 }}>
       <label style={{ fontSize: 12, fontWeight: 600, color: "#666", marginBottom: 8, display: "block" }}>{label}</label>
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+      
+      {/* Photo grid */}
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 8 }}>
         {photos.map(p => (
-          <div key={p.id} style={{ position: "relative", width: 72, height: 72, borderRadius: 12, overflow: "hidden" }}>
+          <div key={p.id} style={{ position: "relative", width: 72, height: 72, borderRadius: 12, overflow: "hidden", boxShadow: "0 2px 8px rgba(255,20,147,0.15)" }}>
             <img src={p.url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
             {p.gdriveUrl && <div style={{ position: "absolute", bottom: 2, left: 2, background: "rgba(34,197,94,0.9)", borderRadius: 4, padding: "0 4px", fontSize: 8, color: "#fff", fontWeight: 700 }}>☁️</div>}
             <button onClick={(e) => { e.stopPropagation(); removePhoto(p.id); }} style={{ position: "absolute", top: 2, right: 2, background: "rgba(0,0,0,0.6)", color: "#fff", border: "none", borderRadius: "50%", width: 18, height: 18, fontSize: 11, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>×</button>
           </div>
         ))}
-        <button onClick={() => fileRef.current.click()} style={{ width: 72, height: 72, borderRadius: 12, border: "2px dashed #D8B4FE", background: "#FAF5FF", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: 10, color: "#A855F7", fontWeight: 600, gap: 2 }}>
-          <span style={{ fontSize: 20 }}>📸</span>Add
+      </div>
+
+      {/* Two action buttons: Camera + Gallery */}
+      <div style={{ display: "flex", gap: 8 }}>
+        <button onClick={openCamera} style={{ flex: 1, padding: "12px 8px", borderRadius: 14, border: "2px dashed #FF69B4", background: "linear-gradient(135deg, #FFF0F5, #FFE4F0)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: 11, color: "#FF1493", fontWeight: 700, gap: 4, fontFamily: "Sora, sans-serif", transition: "all 0.2s" }}>
+          <span style={{ fontSize: 26 }}>📷</span>
+          Take Photo
+        </button>
+        <button onClick={() => galleryRef.current?.click()} style={{ flex: 1, padding: "12px 8px", borderRadius: 14, border: "2px dashed #FFB3D9", background: "linear-gradient(135deg, #FFF5FA, #FFF0F5)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: 11, color: "#D6006E", fontWeight: 700, gap: 4, fontFamily: "Sora, sans-serif", transition: "all 0.2s" }}>
+          <span style={{ fontSize: 26 }}>🖼️</span>
+          From Gallery
         </button>
       </div>
+
+      {/* Hidden file inputs */}
+      <input ref={galleryRef} type="file" accept="image/*" multiple onChange={handleFiles} style={{ display: "none" }} />
+      <input ref={cameraRef} type="file" accept="image/*" capture="environment" onChange={handleFiles} style={{ display: "none" }} />
+
+      {/* GDrive info */}
       {hasGDrive && photos.length > 0 && (
-        <div style={{ marginTop: 6, fontSize: 10, color: "#8B5CF6" }}>
-          📁 Upload photos to <a href={gdriveConfig.folderUrl} target="_blank" rel="noopener noreferrer" style={{ color: "#7C3AED", fontWeight: 600 }}>Google Drive folder</a> with these names for easy lookup
+        <div style={{ marginTop: 6, fontSize: 10, color: "#E91E8B" }}>
+          📁 Upload photos to <a href={gdriveConfig.folderUrl} target="_blank" rel="noopener noreferrer" style={{ color: "#D6006E", fontWeight: 600 }}>Google Drive folder</a> with these names for easy lookup
           {photos.filter(p => p.descriptiveFilename).map(p => (
             <div key={p.id} style={{ fontFamily: "monospace", fontSize: 9, color: "#666", marginTop: 2, wordBreak: "break-all" }}>📎 {p.descriptiveFilename}</div>
           ))}
         </div>
       )}
-      <input ref={fileRef} type="file" accept="image/*" multiple capture="environment" onChange={handleFiles} style={{ display: "none" }} />
+
+      {/* Hidden canvas for capture */}
+      <canvas ref={canvasRef} style={{ display: "none" }} />
+
+      {/* ===== FULLSCREEN CAMERA MODAL ===== */}
+      {cameraOpen && (
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 10000, background: "#000", display: "flex", flexDirection: "column" }}>
+          {/* Top bar */}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 16px", background: "rgba(0,0,0,0.7)", zIndex: 2 }}>
+            <button onClick={stopCamera} style={{ background: "rgba(255,255,255,0.15)", border: "none", color: "#fff", fontSize: 14, fontWeight: 700, padding: "8px 16px", borderRadius: 20, cursor: "pointer", fontFamily: "Sora, sans-serif", backdropFilter: "blur(8px)" }}>✕ Close</button>
+            <div style={{ color: "#FF69B4", fontSize: 13, fontWeight: 700, fontFamily: "Sora, sans-serif", textShadow: "0 1px 4px rgba(0,0,0,0.5)" }}>
+              📸 {photoType === "before" ? "Before Photo" : photoType === "after" ? "After Photo" : photoType === "assessment" ? "Assessment" : "Snap a Pic"}
+            </div>
+            <button onClick={flipCamera} style={{ background: "rgba(255,255,255,0.15)", border: "none", color: "#fff", fontSize: 18, padding: "8px 14px", borderRadius: 20, cursor: "pointer", backdropFilter: "blur(8px)" }}>🔄</button>
+          </div>
+
+          {/* Camera feed / Preview */}
+          <div style={{ flex: 1, position: "relative", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
+            {cameraError && cameraError !== "camera" ? (
+              <div style={{ color: "#FF69B4", textAlign: "center", padding: 32, fontFamily: "Sora, sans-serif" }}>
+                <div style={{ fontSize: 48, marginBottom: 16 }}>😿</div>
+                <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>{cameraError}</div>
+                <button onClick={stopCamera} style={{ background: "#FF1493", color: "#fff", border: "none", padding: "10px 24px", borderRadius: 20, fontWeight: 700, cursor: "pointer", fontFamily: "Sora, sans-serif" }}>Go Back</button>
+              </div>
+            ) : capturedPreview ? (
+              <img src={capturedPreview} alt="Preview" style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }} />
+            ) : (
+              <video ref={videoRef} autoPlay playsInline muted style={{ width: "100%", height: "100%", objectFit: "cover", transform: facingMode === "user" ? "scaleX(-1)" : "none" }} />
+            )}
+
+            {/* Flash effect */}
+            {flashEffect && (
+              <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, background: "#fff", opacity: 0.8, transition: "opacity 0.2s", pointerEvents: "none" }} />
+            )}
+
+            {/* Photo count badge */}
+            {photos.length > 0 && (
+              <div style={{ position: "absolute", top: 12, right: 12, background: "linear-gradient(135deg, #FF1493, #FF69B4)", color: "#fff", borderRadius: 16, padding: "4px 12px", fontSize: 12, fontWeight: 700, fontFamily: "Sora, sans-serif", boxShadow: "0 2px 8px rgba(255,20,147,0.4)" }}>
+                {photos.length} pic{photos.length !== 1 ? "s" : ""} ✨
+              </div>
+            )}
+          </div>
+
+          {/* Bottom controls */}
+          <div style={{ padding: "16px 24px 32px", background: "rgba(0,0,0,0.7)", display: "flex", justifyContent: "center", alignItems: "center", gap: 24 }}>
+            {capturedPreview ? (
+              <>
+                <button onClick={retakePhoto} style={{ background: "rgba(255,255,255,0.15)", border: "2px solid rgba(255,255,255,0.3)", color: "#fff", fontSize: 14, fontWeight: 700, padding: "14px 28px", borderRadius: 28, cursor: "pointer", fontFamily: "Sora, sans-serif", backdropFilter: "blur(8px)" }}>
+                  🔄 Retake
+                </button>
+                <button onClick={acceptPhoto} style={{ background: "linear-gradient(135deg, #FF1493, #FF69B4)", border: "none", color: "#fff", fontSize: 14, fontWeight: 700, padding: "14px 28px", borderRadius: 28, cursor: "pointer", fontFamily: "Sora, sans-serif", boxShadow: "0 4px 16px rgba(255,20,147,0.5)" }}>
+                  ✅ Use This!
+                </button>
+              </>
+            ) : (
+              <>
+                {/* Shutter button */}
+                <button onClick={capturePhoto} style={{ width: 72, height: 72, borderRadius: "50%", border: "4px solid #FF69B4", background: "radial-gradient(circle, #fff 60%, #FFE4F0 100%)", cursor: "pointer", boxShadow: "0 0 20px rgba(255,105,180,0.5), inset 0 0 8px rgba(255,20,147,0.2)", display: "flex", alignItems: "center", justifyContent: "center", transition: "transform 0.1s" }}>
+                  <div style={{ width: 56, height: 56, borderRadius: "50%", background: "linear-gradient(135deg, #FF1493, #FF69B4)", boxShadow: "inset 0 2px 4px rgba(255,255,255,0.3)" }} />
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -615,14 +802,14 @@ function SpaceEditorCard({ space, index, total, onUpdate, onRemove, collapsed, o
   };
 
   return (
-    <div style={{ background: "#fff", border: "2px solid #F0E6FF", borderRadius: 16, marginBottom: 10, overflow: "hidden", animation: "fadeIn 0.3s ease" }}>
+    <div style={{ background: "#fff", border: "2px solid #FFD6E8", borderRadius: 16, marginBottom: 10, overflow: "hidden", animation: "fadeIn 0.3s ease" }}>
       {/* Collapsed header — always visible */}
-      <div onClick={onToggle} style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 14px", cursor: "pointer", background: collapsed ? "#FDFBFF" : "linear-gradient(135deg, #FFF5F7, #F3E8FF)" }}>
+      <div onClick={onToggle} style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 14px", cursor: "pointer", background: collapsed ? "#FFF5F8" : "linear-gradient(135deg, #FFF0F5, #FFE4F0)" }}>
         <span style={{ fontSize: 22 }}>{emoji}</span>
         <div style={{ flex: 1 }}>
           <div style={{ fontWeight: 700, fontSize: 13 }}>
             {space.spaceType}
-            <span style={{ fontWeight: 500, color: "#A855F7", marginLeft: 6, fontSize: 11 }}>
+            <span style={{ fontWeight: 500, color: "#FF1493", marginLeft: 6, fontSize: 11 }}>
               {space.estimatedHours || hours}h
             </span>
           </div>
@@ -630,7 +817,7 @@ function SpaceEditorCard({ space, index, total, onUpdate, onRemove, collapsed, o
             {space.size} • {space.clutterLevel} clutter
           </div>
         </div>
-        <span style={{ fontSize: 11, color: "#C084FC", fontWeight: 700 }}>{collapsed ? "▼" : "▲"}</span>
+        <span style={{ fontSize: 11, color: "#FF69B4", fontWeight: 700 }}>{collapsed ? "▼" : "▲"}</span>
         {total > 1 && (
           <button onClick={(e) => { e.stopPropagation(); onRemove(); }} style={{ background: "#FFF1F2", border: "1px solid #FECDD3", borderRadius: 8, padding: "4px 8px", fontSize: 11, color: "#E11D48", fontWeight: 700, cursor: "pointer" }}>
             ✕
@@ -644,7 +831,7 @@ function SpaceEditorCard({ space, index, total, onUpdate, onRemove, collapsed, o
           <label style={{ fontSize: 11, fontWeight: 600, color: "#888", marginBottom: 6, display: "block", marginTop: 10 }}>Space Type</label>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, marginBottom: 12 }}>
             {SPACE_TYPES.map((t) => (
-              <button key={t.label} onClick={() => updateFields({ spaceType: t.label, _manualOverride: false })} style={{ padding: "8px 6px", borderRadius: 10, border: space.spaceType === t.label ? "2px solid #C084FC" : "1.5px solid #E5E7EB", background: space.spaceType === t.label ? "#F3E8FF" : "#fff", cursor: "pointer", fontSize: 11, fontWeight: 600, textAlign: "center" }}>
+              <button key={t.label} onClick={() => updateFields({ spaceType: t.label, _manualOverride: false })} style={{ padding: "8px 6px", borderRadius: 10, border: space.spaceType === t.label ? "2px solid #FF69B4" : "1.5px solid #E5E7EB", background: space.spaceType === t.label ? "#FFE4F0" : "#fff", cursor: "pointer", fontSize: 11, fontWeight: 600, textAlign: "center" }}>
                 <span style={{ fontSize: 16, display: "block" }}>{t.emoji}</span>
                 {t.label}
               </button>
@@ -654,7 +841,7 @@ function SpaceEditorCard({ space, index, total, onUpdate, onRemove, collapsed, o
           <label style={{ fontSize: 11, fontWeight: 600, color: "#888", marginBottom: 6, display: "block" }}>Size</label>
           <div style={{ display: "flex", gap: 5, marginBottom: 12 }}>
             {Object.keys(SIZE_MULTIPLIERS).map((s) => (
-              <button key={s} onClick={() => updateFields({ size: s, _manualOverride: false })} style={{ flex: 1, padding: "7px 3px", borderRadius: 8, border: space.size === s ? "2px solid #C084FC" : "1.5px solid #E5E7EB", background: space.size === s ? "#F3E8FF" : "#fff", cursor: "pointer", fontSize: 10, fontWeight: 600, textTransform: "capitalize" }}>
+              <button key={s} onClick={() => updateFields({ size: s, _manualOverride: false })} style={{ flex: 1, padding: "7px 3px", borderRadius: 8, border: space.size === s ? "2px solid #FF69B4" : "1.5px solid #E5E7EB", background: space.size === s ? "#FFE4F0" : "#fff", cursor: "pointer", fontSize: 10, fontWeight: 600, textTransform: "capitalize" }}>
                 {s === "xlarge" ? "XL" : s}
               </button>
             ))}
@@ -663,7 +850,7 @@ function SpaceEditorCard({ space, index, total, onUpdate, onRemove, collapsed, o
           <label style={{ fontSize: 11, fontWeight: 600, color: "#888", marginBottom: 6, display: "block" }}>Clutter Level</label>
           <div style={{ display: "flex", gap: 5, marginBottom: 12 }}>
             {Object.keys(CLUTTER_MULTIPLIERS).map((c) => (
-              <button key={c} onClick={() => updateFields({ clutterLevel: c, _manualOverride: false })} style={{ flex: 1, padding: "7px 3px", borderRadius: 8, border: space.clutterLevel === c ? "2px solid #C084FC" : "1.5px solid #E5E7EB", background: space.clutterLevel === c ? "#F3E8FF" : "#fff", cursor: "pointer", fontSize: 10, fontWeight: 600, textTransform: "capitalize" }}>
+              <button key={c} onClick={() => updateFields({ clutterLevel: c, _manualOverride: false })} style={{ flex: 1, padding: "7px 3px", borderRadius: 8, border: space.clutterLevel === c ? "2px solid #FF69B4" : "1.5px solid #E5E7EB", background: space.clutterLevel === c ? "#FFE4F0" : "#fff", cursor: "pointer", fontSize: 10, fontWeight: 600, textTransform: "capitalize" }}>
                 {c}
               </button>
             ))}
@@ -674,12 +861,12 @@ function SpaceEditorCard({ space, index, total, onUpdate, onRemove, collapsed, o
           <PhotoUpload label="📸 Before Photos" photos={space.beforePhotos || []} onPhotosChange={(p) => updateField("beforePhotos", p)} jobName={jobName} spaceType={space.spaceType} photoType="before" />
 
           {/* Per-space estimate with override */}
-          <div style={{ background: "linear-gradient(135deg, #FFF5F7, #F3E8FF)", borderRadius: 12, padding: 10, marginTop: 4 }}>
+          <div style={{ background: "linear-gradient(135deg, #FFF0F5, #FFE4F0)", borderRadius: 12, padding: 10, marginTop: 4 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 12 }}>
               <span style={{ fontWeight: 600, color: "#888" }}>🤖 Auto: {hours}h</span>
               <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
                 <span style={{ fontSize: 11, color: "#888" }}>Override:</span>
-                <input type="number" step="0.5" min="0" value={space.estimatedHours || hours} onChange={(e) => updateField("estimatedHours", parseFloat(e.target.value) || 0)} style={{ width: 60, padding: "4px 8px", borderRadius: 8, border: "1.5px solid #D8B4FE", fontSize: 12, textAlign: "center", outline: "none", background: "#fff" }} />
+                <input type="number" step="0.5" min="0" value={space.estimatedHours || hours} onChange={(e) => updateField("estimatedHours", parseFloat(e.target.value) || 0)} style={{ width: 60, padding: "4px 8px", borderRadius: 8, border: "1.5px solid #FFB3D9", fontSize: 12, textAlign: "center", outline: "none", background: "#fff" }} />
                 <span style={{ fontSize: 11, color: "#888" }}>h</span>
               </div>
             </div>
@@ -714,12 +901,12 @@ function ScheduleDaysEditor({ scheduleDays, totalHours, onChange }) {
     <div style={{ marginBottom: 8 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
         <label style={{ fontSize: 12, fontWeight: 600, color: "#666" }}>📅 Schedule Days</label>
-        <span style={{ fontSize: 11, color: "#A855F7", fontWeight: 700 }}>{scheduledH}h of {totalHours}h</span>
+        <span style={{ fontSize: 11, color: "#FF1493", fontWeight: 700 }}>{scheduledH}h of {totalHours}h</span>
       </div>
       
       <div style={{ marginBottom: 10 }}>
-        <div style={{ height: 8, borderRadius: 4, background: "#F3E8FF", overflow: "hidden" }}>
-          <div style={{ height: "100%", borderRadius: 4, background: pct >= 100 ? "linear-gradient(90deg, #34D399, #60A5FA)" : "linear-gradient(90deg, #FF6B9D, #C084FC)", width: `${pct}%`, transition: "width 0.4s" }} />
+        <div style={{ height: 8, borderRadius: 4, background: "#FFE4F0", overflow: "hidden" }}>
+          <div style={{ height: "100%", borderRadius: 4, background: pct >= 100 ? "linear-gradient(90deg, #34D399, #60A5FA)" : "linear-gradient(90deg, #FF1493, #FF69B4)", width: `${pct}%`, transition: "width 0.4s" }} />
         </div>
         <div style={{ fontSize: 11, color: remaining > 0 ? "#E11D48" : "#059669", fontWeight: 600, marginTop: 3 }}>
           {remaining > 0 ? `${remaining}h still needs scheduling` : "✅ All hours scheduled!"}
@@ -727,36 +914,36 @@ function ScheduleDaysEditor({ scheduleDays, totalHours, onChange }) {
       </div>
 
       {scheduleDays.map((day, index) => (
-        <div key={day.id} style={{ background: "#FDFBFF", border: "1.5px solid #F0E6FF", borderRadius: 14, padding: 12, marginBottom: 8, animation: "fadeIn 0.2s ease" }}>
+        <div key={day.id} style={{ background: "#FFF5F8", border: "1.5px solid #FFD6E8", borderRadius: 14, padding: 12, marginBottom: 8, animation: "fadeIn 0.2s ease" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-            <span style={{ fontSize: 12, fontWeight: 700, color: "#7C3AED" }}>Day {index + 1} {day.date ? `• ${formatDate(day.date)}` : ""}</span>
+            <span style={{ fontSize: 12, fontWeight: 700, color: "#D6006E" }}>Day {index + 1} {day.date ? `• ${formatDate(day.date)}` : ""}</span>
             <button onClick={() => removeDay(index)} style={{ background: "#FFF1F2", border: "1px solid #FECDD3", borderRadius: 8, padding: "3px 8px", fontSize: 11, color: "#E11D48", fontWeight: 700, cursor: "pointer" }}>✕</button>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
             <div>
               <label style={{ fontSize: 10, fontWeight: 600, color: "#999", display: "block", marginBottom: 3 }}>Date</label>
-              <input type="date" value={day.date} onChange={(e) => updateDay(index, { date: e.target.value })} style={{ width: "100%", padding: "8px 10px", borderRadius: 10, border: "1.5px solid #F0E6FF", fontSize: 13, outline: "none", background: "#fff" }} />
+              <input type="date" value={day.date} onChange={(e) => updateDay(index, { date: e.target.value })} style={{ width: "100%", padding: "8px 10px", borderRadius: 10, border: "1.5px solid #FFD6E8", fontSize: 13, outline: "none", background: "#fff" }} />
             </div>
             <div>
               <label style={{ fontSize: 10, fontWeight: 600, color: "#999", display: "block", marginBottom: 3 }}>Start Time</label>
-              <input type="time" value={day.startTime} onChange={(e) => updateDay(index, { startTime: e.target.value })} style={{ width: "100%", padding: "8px 10px", borderRadius: 10, border: "1.5px solid #F0E6FF", fontSize: 13, outline: "none", background: "#fff" }} />
+              <input type="time" value={day.startTime} onChange={(e) => updateDay(index, { startTime: e.target.value })} style={{ width: "100%", padding: "8px 10px", borderRadius: 10, border: "1.5px solid #FFD6E8", fontSize: 13, outline: "none", background: "#fff" }} />
             </div>
           </div>
           <div style={{ marginTop: 8 }}>
             <label style={{ fontSize: 10, fontWeight: 600, color: "#999", display: "block", marginBottom: 3 }}>Hours Thea will work this day</label>
             <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
               {[1, 1.5, 2, 3, 4, 5, 6, 8].map(h => (
-                <button key={h} onClick={() => updateDay(index, { hours: h })} style={{ padding: "5px 10px", borderRadius: 8, border: day.hours === h ? "2px solid #C084FC" : "1.5px solid #E5E7EB", background: day.hours === h ? "#F3E8FF" : "#fff", cursor: "pointer", fontSize: 11, fontWeight: 600, color: day.hours === h ? "#7C3AED" : "#666" }}>
+                <button key={h} onClick={() => updateDay(index, { hours: h })} style={{ padding: "5px 10px", borderRadius: 8, border: day.hours === h ? "2px solid #FF69B4" : "1.5px solid #E5E7EB", background: day.hours === h ? "#FFE4F0" : "#fff", cursor: "pointer", fontSize: 11, fontWeight: 600, color: day.hours === h ? "#D6006E" : "#666" }}>
                   {h}h
                 </button>
               ))}
             </div>
-            <input type="number" step="0.5" min="0.5" max="12" placeholder="Custom hours" value={day.hours || ""} onChange={(e) => updateDay(index, { hours: parseFloat(e.target.value) || 0 })} style={{ width: "100%", padding: "8px 10px", borderRadius: 10, border: "1.5px solid #F0E6FF", fontSize: 12, outline: "none", background: "#fff", marginTop: 6 }} />
+            <input type="number" step="0.5" min="0.5" max="12" placeholder="Custom hours" value={day.hours || ""} onChange={(e) => updateDay(index, { hours: parseFloat(e.target.value) || 0 })} style={{ width: "100%", padding: "8px 10px", borderRadius: 10, border: "1.5px solid #FFD6E8", fontSize: 12, outline: "none", background: "#fff", marginTop: 6 }} />
           </div>
         </div>
       ))}
 
-      <button onClick={addDay} style={{ width: "100%", padding: "11px", borderRadius: 12, border: "2px dashed #C084FC", background: "linear-gradient(135deg, #FAF5FF, #FFF5F7)", cursor: "pointer", fontSize: 13, fontWeight: 700, color: "#7C3AED", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+      <button onClick={addDay} style={{ width: "100%", padding: "11px", borderRadius: 12, border: "2px dashed #FF69B4", background: "linear-gradient(135deg, #FFF0F5, #FFE4F0)", cursor: "pointer", fontSize: 13, fontWeight: 700, color: "#D6006E", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
         ➕ Add a Day
       </button>
     </div>
@@ -777,8 +964,8 @@ function Dashboard({ data, setCurrentView, openJob, setShowNewJob }) {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      <Card style={{ background: "linear-gradient(135deg, #FF6B9D 0%, #C084FC 50%, #60A5FA 100%)", color: "#fff", border: "none" }}>
-        <h2 style={{ fontFamily: "'Outfit', sans-serif", fontSize: 22, fontWeight: 800, margin: "0 0 4px" }}>Hey Thea! 👋</h2>
+      <Card style={{ background: "linear-gradient(135deg, #FF1493 0%, #FF69B4 40%, #FF85C8 100%)", color: "#fff", border: "none" }}>
+        <h2 style={{ fontFamily: "'Sora', sans-serif", fontSize: 22, fontWeight: 800, margin: "0 0 4px" }}>Hey Thea! 👋</h2>
         <p style={{ fontSize: 13, opacity: 0.9, margin: 0 }}>Ready to make some spaces sparkle today? ✨</p>
         <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
           <button onClick={() => { setShowNewJob(true); setCurrentView("jobs"); }} style={{ flex: 1, background: "rgba(255,255,255,0.25)", border: "2px solid rgba(255,255,255,0.4)", borderRadius: 12, padding: "10px", color: "#fff", fontWeight: 700, fontSize: 13, cursor: "pointer", backdropFilter: "blur(10px)" }}>✨ New Assessment</button>
@@ -788,14 +975,14 @@ function Dashboard({ data, setCurrentView, openJob, setShowNewJob }) {
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
         {[
-          { label: "Active Jobs", value: stats.active, emoji: "🔥", color: "#FF6B9D" },
+          { label: "Active Jobs", value: stats.active, emoji: "🔥", color: "#FF1493" },
           { label: "Completed", value: stats.completed, emoji: "✅", color: "#34D399" },
-          { label: "Earned", value: formatCurrency(stats.revenue), emoji: "💰", color: "#C084FC" },
+          { label: "Earned", value: formatCurrency(stats.revenue), emoji: "💰", color: "#FF69B4" },
           { label: "Pending", value: formatCurrency(stats.pending), emoji: "⏳", color: "#60A5FA" },
         ].map((s) => (
           <Card key={s.label} style={{ padding: 14, textAlign: "center" }}>
             <div style={{ fontSize: 22 }}>{s.emoji}</div>
-            <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 20, fontWeight: 800, color: s.color }}>{s.value}</div>
+            <div style={{ fontFamily: "'Sora', sans-serif", fontSize: 20, fontWeight: 800, color: s.color }}>{s.value}</div>
             <div style={{ fontSize: 11, color: "#999", fontWeight: 600 }}>{s.label}</div>
           </Card>
         ))}
@@ -803,7 +990,7 @@ function Dashboard({ data, setCurrentView, openJob, setShowNewJob }) {
 
       {needsAction.length > 0 && (
         <div>
-          <h3 style={{ fontFamily: "'Outfit', sans-serif", fontSize: 16, fontWeight: 700, color: "#333", margin: "0 0 10px" }}>⚡ Needs Action</h3>
+          <h3 style={{ fontFamily: "'Sora', sans-serif", fontSize: 16, fontWeight: 700, color: "#333", margin: "0 0 10px" }}>⚡ Needs Action</h3>
           {needsAction.map((job) => (
             <Card key={job.id} onClick={() => openJob(job.id)} style={{ padding: 14, marginBottom: 8 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -820,7 +1007,7 @@ function Dashboard({ data, setCurrentView, openJob, setShowNewJob }) {
 
       {upcoming.length > 0 && (
         <div>
-          <h3 style={{ fontFamily: "'Outfit', sans-serif", fontSize: 16, fontWeight: 700, color: "#333", margin: "0 0 10px" }}>📅 Coming Up</h3>
+          <h3 style={{ fontFamily: "'Sora', sans-serif", fontSize: 16, fontWeight: 700, color: "#333", margin: "0 0 10px" }}>📅 Coming Up</h3>
           {upcoming.map((job) => (
             <Card key={job.id} onClick={() => openJob(job.id)} style={{ padding: 14, marginBottom: 8 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -838,7 +1025,7 @@ function Dashboard({ data, setCurrentView, openJob, setShowNewJob }) {
       {data.jobs.length === 0 && (
         <Card style={{ textAlign: "center", padding: 40 }}>
           <div style={{ fontSize: 48, marginBottom: 12 }}>🌟</div>
-          <h3 style={{ fontFamily: "'Outfit', sans-serif", fontSize: 18, fontWeight: 800, color: "#333", margin: "0 0 8px" }}>Your journey starts here!</h3>
+          <h3 style={{ fontFamily: "'Sora', sans-serif", fontSize: 18, fontWeight: 800, color: "#333", margin: "0 0 8px" }}>Your journey starts here!</h3>
           <p style={{ fontSize: 13, color: "#888", margin: "0 0 16px" }}>Create your first job assessment to get started</p>
           <GradientButton onClick={() => { setShowNewJob(true); setCurrentView("jobs"); }}>✨ Create First Job</GradientButton>
         </Card>
@@ -859,7 +1046,7 @@ function JobsList({ data, openJob, showNewJob, setShowNewJob, addJob, updateJob,
         <>
           <div style={{ display: "flex", gap: 6, overflowX: "auto", paddingBottom: 10, marginBottom: 12 }}>
             {["all", "assessment", "estimate-sent", "estimate-approved", "schedule-sent", "scheduled", "in-progress", "completed", "invoiced", "paid"].map((f) => (
-              <button key={f} onClick={() => setFilter(f)} style={{ whiteSpace: "nowrap", padding: "6px 14px", borderRadius: 20, border: filter === f ? "2px solid #C084FC" : "2px solid #E5E7EB", background: filter === f ? "#F3E8FF" : "#fff", color: filter === f ? "#7C3AED" : "#666", fontWeight: 600, fontSize: 12, cursor: "pointer", textTransform: "capitalize" }}>
+              <button key={f} onClick={() => setFilter(f)} style={{ whiteSpace: "nowrap", padding: "6px 14px", borderRadius: 20, border: filter === f ? "2px solid #FF69B4" : "2px solid #E5E7EB", background: filter === f ? "#FFE4F0" : "#fff", color: filter === f ? "#D6006E" : "#666", fontWeight: 600, fontSize: 12, cursor: "pointer", textTransform: "capitalize" }}>
                 {f === "all" ? "All" : f}
               </button>
             ))}
@@ -884,7 +1071,7 @@ function JobCard({ job, onClick }) {
   return (
     <Card onClick={onClick} style={{ padding: 14 }}>
       <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-        <div style={{ width: 44, height: 44, borderRadius: 14, background: "linear-gradient(135deg, #FFF0E5, #F3E8FF)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: spaces.length > 2 ? 14 : 20, flexShrink: 0 }}>
+        <div style={{ width: 44, height: 44, borderRadius: 14, background: "linear-gradient(135deg, #FFF0E5, #FFE4F0)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: spaces.length > 2 ? 14 : 20, flexShrink: 0 }}>
           {getJobEmojis(spaces)}
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
@@ -898,7 +1085,7 @@ function JobCard({ job, onClick }) {
           {spaces.length > 1 && (
             <div style={{ display: "flex", gap: 4, marginTop: 4, flexWrap: "wrap" }}>
               {spaces.map(s => (
-                <span key={s.id} style={{ fontSize: 9, background: "#F3E8FF", color: "#7C3AED", padding: "2px 6px", borderRadius: 6, fontWeight: 600 }}>
+                <span key={s.id} style={{ fontSize: 9, background: "#FFE4F0", color: "#D6006E", padding: "2px 6px", borderRadius: 6, fontWeight: 600 }}>
                   {SPACE_TYPES.find(t => t.label === s.spaceType)?.emoji} {s.spaceType}
                 </span>
               ))}
@@ -913,7 +1100,7 @@ function JobCard({ job, onClick }) {
               ))}
             </div>
           ) : job.scheduledDate ? (
-            <div style={{ fontSize: 11, color: "#A855F7", fontWeight: 600, marginTop: 3 }}>📅 {formatDate(job.scheduledDate)}</div>
+            <div style={{ fontSize: 11, color: "#FF1493", fontWeight: 600, marginTop: 3 }}>📅 {formatDate(job.scheduledDate)}</div>
           ) : null}
         </div>
       </div>
@@ -988,12 +1175,12 @@ function NewJobForm({ onClose, onSave, settings }) {
     <div style={{ animation: "fadeIn 0.3s ease" }}>
       <div style={{ display: "flex", gap: 4, marginBottom: 16 }}>
         {Array.from({ length: totalSteps }, (_, i) => (
-          <div key={i} style={{ flex: 1, height: 4, borderRadius: 4, background: i < step ? "linear-gradient(90deg, #FF6B9D, #C084FC)" : "#E5E7EB", transition: "all 0.3s" }} />
+          <div key={i} style={{ flex: 1, height: 4, borderRadius: 4, background: i < step ? "linear-gradient(90deg, #FF1493, #FF69B4)" : "#E5E7EB", transition: "all 0.3s" }} />
         ))}
       </div>
 
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-        <h2 style={{ fontFamily: "'Outfit', sans-serif", fontSize: 20, fontWeight: 800, margin: 0 }}>
+        <h2 style={{ fontFamily: "'Sora', sans-serif", fontSize: 20, fontWeight: 800, margin: 0 }}>
           {step === 1 && "👤 Client Info"}
           {step === 2 && "🏠 Spaces to Organize"}
           {step === 3 && "📅 Scheduling"}
@@ -1016,14 +1203,14 @@ function NewJobForm({ onClose, onSave, settings }) {
       {step === 2 && (
         <div>
           {/* Spaces summary bar */}
-          <div style={{ background: "linear-gradient(135deg, #FFF5F7, #F3E8FF, #EFF6FF)", borderRadius: 14, padding: "10px 14px", marginBottom: 12, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div style={{ background: "linear-gradient(135deg, #FFF0F5, #FFE4F0, #EFF6FF)", borderRadius: 14, padding: "10px 14px", marginBottom: 12, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <div>
               <span style={{ fontSize: 12, fontWeight: 700, color: "#333" }}>{spaces.length} space{spaces.length > 1 ? "s" : ""}</span>
               <span style={{ fontSize: 12, color: "#888", marginLeft: 8 }}>
                 {getJobEmojis(spaces)}
               </span>
             </div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: "#7C3AED" }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#D6006E" }}>
               {totalHours}h • {formatCurrency(totalCost)}
             </div>
           </div>
@@ -1041,7 +1228,7 @@ function NewJobForm({ onClose, onSave, settings }) {
             />
           ))}
 
-          <button onClick={addSpace} style={{ width: "100%", padding: "14px", borderRadius: 14, border: "2px dashed #C084FC", background: "linear-gradient(135deg, #FAF5FF, #FFF5F7)", cursor: "pointer", fontSize: 14, fontWeight: 700, color: "#7C3AED", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginTop: 6 }}>
+          <button onClick={addSpace} style={{ width: "100%", padding: "14px", borderRadius: 14, border: "2px dashed #FF69B4", background: "linear-gradient(135deg, #FFF0F5, #FFE4F0)", cursor: "pointer", fontSize: 14, fontWeight: 700, color: "#D6006E", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginTop: 6 }}>
             ➕ Add Another Space
           </button>
 
@@ -1110,8 +1297,8 @@ function NewJobForm({ onClose, onSave, settings }) {
           )}
 
           {/* Breakdown */}
-          <div style={{ background: "linear-gradient(135deg, #FFF5F7, #F3E8FF, #EFF6FF)", borderRadius: 16, padding: 16, marginTop: 8 }}>
-            <h4 style={{ fontFamily: "'Outfit', sans-serif", fontSize: 14, fontWeight: 700, margin: "0 0 10px" }}>💎 Estimate Breakdown</h4>
+          <div style={{ background: "linear-gradient(135deg, #FFF0F5, #FFE4F0, #EFF6FF)", borderRadius: 16, padding: 16, marginTop: 8 }}>
+            <h4 style={{ fontFamily: "'Sora', sans-serif", fontSize: 14, fontWeight: 700, margin: "0 0 10px" }}>💎 Estimate Breakdown</h4>
             
             {/* Per-space breakdown */}
             {spaces.map((s, i) => {
@@ -1143,8 +1330,8 @@ function NewJobForm({ onClose, onSave, settings }) {
               </div>
             )}
             <div style={{ borderTop: "2px solid rgba(192,132,252,0.25)", paddingTop: 10, marginTop: 8, display: "flex", justifyContent: "space-between" }}>
-              <span style={{ fontWeight: 800, fontFamily: "'Outfit', sans-serif", fontSize: 16 }}>Total</span>
-              <span style={{ fontWeight: 800, fontFamily: "'Outfit', sans-serif", fontSize: 20, color: "#7C3AED" }}>{formatCurrency(calculateTotal())}</span>
+              <span style={{ fontWeight: 800, fontFamily: "'Sora', sans-serif", fontSize: 16 }}>Total</span>
+              <span style={{ fontWeight: 800, fontFamily: "'Sora', sans-serif", fontSize: 20, color: "#D6006E" }}>{formatCurrency(calculateTotal())}</span>
             </div>
           </div>
         </Card>
@@ -1286,7 +1473,7 @@ function JobDetail({ job, updateJob, settings, showToast, setCurrentView }) {
         costLines += `<br>Discount: ${job.discountType === "percent" ? `${job.discountValue}%` : formatCurrency(job.discountValue)}`;
       }
       if (job.paymentMethod !== "cash") costLines += `<br>WA Sales Tax (10.25%) applies for ${job.paymentMethod} payments`;
-      costLines += `<br><strong style="font-size:16px;color:#7C3AED;">Estimated Total: ${formatCurrency(job.totalEstimate || job.estimatedCost)}</strong>`;
+      costLines += `<br><strong style="font-size:16px;color:#D6006E;">Estimated Total: ${formatCurrency(job.totalEstimate || job.estimatedCost)}</strong>`;
 
       const html = buildEmailHTML({
         greeting: `Hi ${job.clientName}! 👋`,
@@ -1345,7 +1532,7 @@ function JobDetail({ job, updateJob, settings, showToast, setCurrentView }) {
         sections: [
           { title: "📋 Spaces", content: spacesText },
           { title: "📅 Proposed Schedule", content: daysHTML },
-          { title: "💰 Estimated Total", content: `<strong style="font-size:16px;color:#7C3AED;">${formatCurrency(job.totalEstimate || job.estimatedCost)}</strong> (${job.estimatedHours}h total)` },
+          { title: "💰 Estimated Total", content: `<strong style="font-size:16px;color:#D6006E;">${formatCurrency(job.totalEstimate || job.estimatedCost)}</strong> (${job.estimatedHours}h total)` },
         ],
         cta: '👉 Reply with "CONFIRMED" to book these times!<br><span style="font-size:12px;font-weight:400;">Need different times? Just let me know.</span>',
       });
@@ -1383,7 +1570,7 @@ function JobDetail({ job, updateJob, settings, showToast, setCurrentView }) {
           { title: "✅ Your Session is Booked!", content: `Your SparkleSpace organizing session is officially confirmed.` },
           { title: "📋 Spaces", content: spacesText },
           { title: "📅 Confirmed Schedule", content: daysHTML },
-          { title: "💰 Estimated Total", content: `<strong style="font-size:16px;color:#7C3AED;">${formatCurrency(job.totalEstimate || job.estimatedCost)}</strong>` },
+          { title: "💰 Estimated Total", content: `<strong style="font-size:16px;color:#D6006E;">${formatCurrency(job.totalEstimate || job.estimatedCost)}</strong>` },
         ],
         cta: `See you on ${days[0] ? formatDate(days[0].date) : "the scheduled date"}! 🌟`,
       });
@@ -1423,15 +1610,15 @@ function JobDetail({ job, updateJob, settings, showToast, setCurrentView }) {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-      <button onClick={() => setCurrentView("jobs")} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 14, fontWeight: 600, color: "#C084FC", textAlign: "left", padding: 0 }}>← Back to Jobs</button>
+      <button onClick={() => setCurrentView("jobs")} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 14, fontWeight: 600, color: "#FF69B4", textAlign: "left", padding: 0 }}>← Back to Jobs</button>
 
       {/* Header */}
-      <Card style={{ background: "linear-gradient(135deg, #FFF5F7, #F3E8FF)", border: "1px solid #E8D5FF" }}>
+      <Card style={{ background: "linear-gradient(135deg, #FFF0F5, #FFE4F0)", border: "1px solid #E8D5FF" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start" }}>
           <div>
-            <h2 style={{ fontFamily: "'Outfit', sans-serif", fontSize: 20, fontWeight: 800, margin: "0 0 4px" }}>{job.clientName}</h2>
+            <h2 style={{ fontFamily: "'Sora', sans-serif", fontSize: 20, fontWeight: 800, margin: "0 0 4px" }}>{job.clientName}</h2>
             <p style={{ fontSize: 13, color: "#888", margin: 0 }}>{getJobEmojis(spaces)} {getJobSummary(spaces)} • {job.clientAddress || "No address"}</p>
-            {job.clientPhone && <p style={{ fontSize: 12, color: "#A855F7", margin: "4px 0 0", fontWeight: 600 }}>📱 {job.clientPhone}</p>}
+            {job.clientPhone && <p style={{ fontSize: 12, color: "#FF1493", margin: "4px 0 0", fontWeight: 600 }}>📱 {job.clientPhone}</p>}
           </div>
           <StatusBadge status={job.status} />
         </div>
@@ -1439,7 +1626,7 @@ function JobDetail({ job, updateJob, settings, showToast, setCurrentView }) {
         {spaces.length > 0 && (
           <div style={{ display: "flex", gap: 6, marginTop: 10, flexWrap: "wrap" }}>
             {spaces.map(s => (
-              <span key={s.id} style={{ fontSize: 11, background: "rgba(192,132,252,0.15)", color: "#7C3AED", padding: "3px 10px", borderRadius: 10, fontWeight: 600 }}>
+              <span key={s.id} style={{ fontSize: 11, background: "rgba(192,132,252,0.15)", color: "#D6006E", padding: "3px 10px", borderRadius: 10, fontWeight: 600 }}>
                 {SPACE_TYPES.find(t => t.label === s.spaceType)?.emoji} {s.spaceType} • {s.estimatedHours || estimateSpaceHours(s.spaceType, s.size, s.clutterLevel)}h
               </span>
             ))}
@@ -1462,16 +1649,16 @@ function JobDetail({ job, updateJob, settings, showToast, setCurrentView }) {
 
       {/* Time & Cost */}
       <Card>
-        <h3 style={{ fontFamily: "'Outfit', sans-serif", fontSize: 14, fontWeight: 700, margin: "0 0 10px" }}>⏱️ Time & Cost</h3>
+        <h3 style={{ fontFamily: "'Sora', sans-serif", fontSize: 14, fontWeight: 700, margin: "0 0 10px" }}>⏱️ Time & Cost</h3>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-          <div style={{ background: "#FFF5F7", borderRadius: 12, padding: 10, textAlign: "center" }}>
+          <div style={{ background: "#FFF0F5", borderRadius: 12, padding: 10, textAlign: "center" }}>
             <div style={{ fontSize: 11, color: "#888", fontWeight: 600 }}>Estimated</div>
-            <div style={{ fontWeight: 800, color: "#FF6B9D", fontSize: 16 }}>{job.estimatedHours}h</div>
+            <div style={{ fontWeight: 800, color: "#FF1493", fontSize: 16 }}>{job.estimatedHours}h</div>
             <div style={{ fontSize: 11, color: "#888" }}>{formatCurrency(job.estimatedCost)}</div>
           </div>
-          <div style={{ background: "#F3E8FF", borderRadius: 12, padding: 10, textAlign: "center" }}>
+          <div style={{ background: "#FFE4F0", borderRadius: 12, padding: 10, textAlign: "center" }}>
             <div style={{ fontSize: 11, color: "#888", fontWeight: 600 }}>Actual</div>
-            <div style={{ fontWeight: 800, color: "#7C3AED", fontSize: 16 }}>{job.actualHours ? `${job.actualHours}h` : "—"}</div>
+            <div style={{ fontWeight: 800, color: "#D6006E", fontSize: 16 }}>{job.actualHours ? `${job.actualHours}h` : "—"}</div>
             {job.actualHours && <div style={{ fontSize: 11, color: "#888" }}>{formatCurrency(job.actualHours * settings.hourlyRate)}</div>}
           </div>
         </div>
@@ -1485,8 +1672,8 @@ function JobDetail({ job, updateJob, settings, showToast, setCurrentView }) {
       {/* Spaces (editable) */}
       <Card>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-          <h3 style={{ fontFamily: "'Outfit', sans-serif", fontSize: 14, fontWeight: 700, margin: 0 }}>🏠 Spaces ({spaces.length})</h3>
-          <button onClick={addSpaceToJob} style={{ background: "linear-gradient(135deg, #F3E8FF, #FFF5F7)", border: "1.5px solid #D8B4FE", borderRadius: 10, padding: "5px 12px", fontSize: 12, fontWeight: 700, color: "#7C3AED", cursor: "pointer" }}>
+          <h3 style={{ fontFamily: "'Sora', sans-serif", fontSize: 14, fontWeight: 700, margin: 0 }}>🏠 Spaces ({spaces.length})</h3>
+          <button onClick={addSpaceToJob} style={{ background: "linear-gradient(135deg, #FFE4F0, #FFF0F5)", border: "1.5px solid #FFB3D9", borderRadius: 10, padding: "5px 12px", fontSize: 12, fontWeight: 700, color: "#D6006E", cursor: "pointer" }}>
             + Add Space
           </button>
         </div>
@@ -1506,7 +1693,7 @@ function JobDetail({ job, updateJob, settings, showToast, setCurrentView }) {
 
       {/* After Photos (per-space) */}
       <Card>
-        <h3 style={{ fontFamily: "'Outfit', sans-serif", fontSize: 14, fontWeight: 700, margin: "0 0 10px" }}>📸 After Photos</h3>
+        <h3 style={{ fontFamily: "'Sora', sans-serif", fontSize: 14, fontWeight: 700, margin: "0 0 10px" }}>📸 After Photos</h3>
         {spaces.map((space, index) => (
           <div key={space.id} style={{ marginBottom: 10 }}>
             <PhotoUpload
@@ -1526,13 +1713,13 @@ function JobDetail({ job, updateJob, settings, showToast, setCurrentView }) {
 
       {/* Notes */}
       <Card>
-        <h3 style={{ fontFamily: "'Outfit', sans-serif", fontSize: 14, fontWeight: 700, margin: "0 0 10px" }}>📝 Job Notes</h3>
+        <h3 style={{ fontFamily: "'Sora', sans-serif", fontSize: 14, fontWeight: 700, margin: "0 0 10px" }}>📝 Job Notes</h3>
         <TextArea value={job.notes || ""} onChange={(e) => updateJob(job.id, { notes: e.target.value })} placeholder="Add job notes..." />
       </Card>
 
       {/* Actions */}
       <Card>
-        <h3 style={{ fontFamily: "'Outfit', sans-serif", fontSize: 14, fontWeight: 700, margin: "0 0 10px" }}>⚡ Actions</h3>
+        <h3 style={{ fontFamily: "'Sora', sans-serif", fontSize: 14, fontWeight: 700, margin: "0 0 10px" }}>⚡ Actions</h3>
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           {/* Step 1: Assessment — finalize estimate then send to client */}
           {job.status === "assessment" && (
@@ -1553,7 +1740,7 @@ function JobDetail({ job, updateJob, settings, showToast, setCurrentView }) {
                 <div style={{ fontSize: 20, marginBottom: 4 }}>⏳</div>
                 <div style={{ fontSize: 13, fontWeight: 700, color: "#F57F17" }}>Waiting for Client Approval</div>
                 <div style={{ fontSize: 11, color: "#888", marginTop: 2 }}>Sent {job.estimateSentAt ? formatDate(job.estimateSentAt) : ""}</div>
-                {job.clientEmail && <div style={{ fontSize: 11, color: "#A855F7", marginTop: 2 }}>📧 {job.clientEmail}</div>}
+                {job.clientEmail && <div style={{ fontSize: 11, color: "#FF1493", marginTop: 2 }}>📧 {job.clientEmail}</div>}
               </div>
               <GradientButton variant="success" onClick={markEstimateApproved}>✅ Client Approved!</GradientButton>
               <GradientButton variant="secondary" onClick={sendAssessmentToClient} style={{ fontSize: 12, opacity: sending ? 0.6 : 1, pointerEvents: sending ? "none" : "auto" }}>
@@ -1615,9 +1802,9 @@ function JobDetail({ job, updateJob, settings, showToast, setCurrentView }) {
           {/* Step 6: In progress */}
           {job.status === "in-progress" && job.actualStartTime && !job.actualEndTime && (
             <>
-              <div style={{ background: "#FFF5F7", borderRadius: 12, padding: 12, textAlign: "center", marginBottom: 4 }}>
+              <div style={{ background: "#FFF0F5", borderRadius: 12, padding: 12, textAlign: "center", marginBottom: 4 }}>
                 <div style={{ fontSize: 11, color: "#888", fontWeight: 600 }}>Started at</div>
-                <div style={{ fontWeight: 800, color: "#FF6B9D", fontSize: 16 }}>{formatTime(job.actualStartTime)}</div>
+                <div style={{ fontWeight: 800, color: "#FF1493", fontSize: 16 }}>{formatTime(job.actualStartTime)}</div>
                 <TimerDisplay startTime={job.actualStartTime} />
               </div>
               <GradientButton variant="danger" onClick={stopTimer}>⏹️ Stop Timer</GradientButton>
@@ -1632,9 +1819,9 @@ function JobDetail({ job, updateJob, settings, showToast, setCurrentView }) {
           {/* Step 8: Invoiced */}
           {job.status === "invoiced" && (
             <>
-              <div style={{ background: "#F3E8FF", borderRadius: 12, padding: 12, textAlign: "center", marginBottom: 4 }}>
+              <div style={{ background: "#FFE4F0", borderRadius: 12, padding: 12, textAlign: "center", marginBottom: 4 }}>
                 <div style={{ fontSize: 11, color: "#888", fontWeight: 600 }}>Invoice Amount</div>
-                <div style={{ fontWeight: 800, color: "#7C3AED", fontSize: 22 }}>{formatCurrency(job.invoiceAmount)}</div>
+                <div style={{ fontWeight: 800, color: "#D6006E", fontSize: 22 }}>{formatCurrency(job.invoiceAmount)}</div>
                 <div style={{ fontSize: 11, color: "#888" }}>via {job.paymentMethod}</div>
               </div>
               <GradientButton variant="success" onClick={markPaid}>💰 Mark as Paid</GradientButton>
@@ -1654,7 +1841,7 @@ function JobDetail({ job, updateJob, settings, showToast, setCurrentView }) {
           )}
 
           {/* Workflow progress tracker */}
-          <div style={{ marginTop: 8, background: "#FDFBFF", borderRadius: 12, padding: 12, border: "1px solid #F0E6FF" }}>
+          <div style={{ marginTop: 8, background: "#FFF5F8", borderRadius: 12, padding: 12, border: "1px solid #FFD6E8" }}>
             <div style={{ fontSize: 11, fontWeight: 700, color: "#888", marginBottom: 8 }}>📍 Workflow</div>
             <div style={{ display: "flex", gap: 3, alignItems: "center", flexWrap: "wrap" }}>
               {[
@@ -1675,7 +1862,7 @@ function JobDetail({ job, updateJob, settings, showToast, setCurrentView }) {
                 const isCurrent = thisIdx === currentIdx;
                 return (
                   <div key={s.key} style={{ display: "flex", alignItems: "center", gap: 3 }}>
-                    <div style={{ width: 22, height: 22, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, background: isCurrent ? "linear-gradient(135deg, #FF6B9D, #C084FC)" : isDone ? "#34D399" : "#E5E7EB", color: isCurrent || isDone ? "#fff" : "#999", fontWeight: 700 }}>
+                    <div style={{ width: 22, height: 22, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, background: isCurrent ? "linear-gradient(135deg, #FF1493, #FF69B4)" : isDone ? "#34D399" : "#E5E7EB", color: isCurrent || isDone ? "#fff" : "#999", fontWeight: 700 }}>
                       {isDone ? "✓" : s.emoji}
                     </div>
                     {i < arr.length - 1 && <div style={{ width: 10, height: 2, background: isDone ? "#34D399" : "#E5E7EB", borderRadius: 1 }} />}
@@ -1691,7 +1878,7 @@ function JobDetail({ job, updateJob, settings, showToast, setCurrentView }) {
       {showFeedback && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: 20 }}>
           <Card style={{ width: "100%", maxWidth: 400 }}>
-            <h3 style={{ fontFamily: "'Outfit', sans-serif", fontSize: 18, fontWeight: 800, margin: "0 0 14px" }}>🌟 Client Feedback</h3>
+            <h3 style={{ fontFamily: "'Sora', sans-serif", fontSize: 18, fontWeight: 800, margin: "0 0 14px" }}>🌟 Client Feedback</h3>
             <label style={{ fontSize: 12, fontWeight: 600, color: "#666", marginBottom: 8, display: "block" }}>Rating</label>
             <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
               {[1, 2, 3, 4, 5].map((n) => (
@@ -1720,7 +1907,7 @@ function TimerDisplay({ startTime }) {
   const m = Math.floor((elapsed % 3600) / 60);
   const s = elapsed % 60;
   return (
-    <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 28, fontWeight: 800, color: "#FF6B9D", marginTop: 4, letterSpacing: 2 }}>
+    <div style={{ fontFamily: "'Sora', sans-serif", fontSize: 28, fontWeight: 800, color: "#FF1493", marginTop: 4, letterSpacing: 2 }}>
       {String(h).padStart(2, "0")}:{String(m).padStart(2, "0")}:{String(s).padStart(2, "0")}
     </div>
   );
@@ -1757,9 +1944,9 @@ function CalendarView({ data, openJob }) {
   return (
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-        <button onClick={() => setCurrentMonth(new Date(year, month - 1))} style={{ background: "#F3E8FF", border: "none", borderRadius: 10, padding: "8px 14px", cursor: "pointer", fontWeight: 700, color: "#7C3AED" }}>‹</button>
-        <h2 style={{ fontFamily: "'Outfit', sans-serif", fontSize: 18, fontWeight: 800, margin: 0 }}>📅 {monthName}</h2>
-        <button onClick={() => setCurrentMonth(new Date(year, month + 1))} style={{ background: "#F3E8FF", border: "none", borderRadius: 10, padding: "8px 14px", cursor: "pointer", fontWeight: 700, color: "#7C3AED" }}>›</button>
+        <button onClick={() => setCurrentMonth(new Date(year, month - 1))} style={{ background: "#FFE4F0", border: "none", borderRadius: 10, padding: "8px 14px", cursor: "pointer", fontWeight: 700, color: "#D6006E" }}>‹</button>
+        <h2 style={{ fontFamily: "'Sora', sans-serif", fontSize: 18, fontWeight: 800, margin: 0 }}>📅 {monthName}</h2>
+        <button onClick={() => setCurrentMonth(new Date(year, month + 1))} style={{ background: "#FFE4F0", border: "none", borderRadius: 10, padding: "8px 14px", cursor: "pointer", fontWeight: 700, color: "#D6006E" }}>›</button>
       </div>
       <Card>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 2, textAlign: "center" }}>
@@ -1771,20 +1958,20 @@ function CalendarView({ data, openJob }) {
             const jobs = getJobsForDay(day);
             const today = isToday(day);
             return (
-              <div key={day} style={{ padding: "6px 2px", borderRadius: 10, minHeight: 44, background: today ? "linear-gradient(135deg, #FF6B9D, #C084FC)" : jobs.length ? "#F3E8FF" : "transparent", cursor: jobs.length ? "pointer" : "default" }} onClick={() => { if (jobs.length) openJob(jobs[0].id); }}>
+              <div key={day} style={{ padding: "6px 2px", borderRadius: 10, minHeight: 44, background: today ? "linear-gradient(135deg, #FF1493, #FF69B4)" : jobs.length ? "#FFE4F0" : "transparent", cursor: jobs.length ? "pointer" : "default" }} onClick={() => { if (jobs.length) openJob(jobs[0].id); }}>
                 <div style={{ fontSize: 12, fontWeight: today ? 800 : 500, color: today ? "#fff" : "#333" }}>{day}</div>
                 {jobs.slice(0, 2).map((j, idx) => (
-                  <div key={idx} style={{ fontSize: 7, background: today ? "rgba(255,255,255,0.3)" : "#C084FC", color: "#fff", borderRadius: 4, padding: "1px 3px", marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontWeight: 600 }}>
+                  <div key={idx} style={{ fontSize: 7, background: today ? "rgba(255,255,255,0.3)" : "#FF69B4", color: "#fff", borderRadius: 4, padding: "1px 3px", marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontWeight: 600 }}>
                     {j.clientName.split(" ")[0]}
                   </div>
                 ))}
-                {jobs.length > 2 && <div style={{ fontSize: 7, color: today ? "#fff" : "#A855F7", fontWeight: 700 }}>+{jobs.length - 2}</div>}
+                {jobs.length > 2 && <div style={{ fontSize: 7, color: today ? "#fff" : "#FF1493", fontWeight: 700 }}>+{jobs.length - 2}</div>}
               </div>
             );
           })}
         </div>
       </Card>
-      <h3 style={{ fontFamily: "'Outfit', sans-serif", fontSize: 14, fontWeight: 700, color: "#333", margin: "16px 0 10px" }}>📋 This Month's Jobs</h3>
+      <h3 style={{ fontFamily: "'Sora', sans-serif", fontSize: 14, fontWeight: 700, color: "#333", margin: "16px 0 10px" }}>📋 This Month's Jobs</h3>
       {(() => {
         // Build a flat list of (job, dayInfo) for this month
         const entries = [];
@@ -1811,7 +1998,7 @@ function CalendarView({ data, openJob }) {
               <div>
                 <div style={{ fontWeight: 700, fontSize: 13 }}>
                   {entry.job.clientName}
-                  {entry.totalDays > 1 && <span style={{ fontSize: 10, color: "#A855F7", fontWeight: 600, marginLeft: 6 }}>Day {entry.dayIndex + 1}/{entry.totalDays}</span>}
+                  {entry.totalDays > 1 && <span style={{ fontSize: 10, color: "#FF1493", fontWeight: 600, marginLeft: 6 }}>Day {entry.dayIndex + 1}/{entry.totalDays}</span>}
                 </div>
                 <div style={{ fontSize: 11, color: "#888" }}>
                   {getJobEmojis(entry.job.spaces)} {getJobSummary(entry.job.spaces)} • {formatDate(entry.dayInfo?.date || entry.job.scheduledDate)}
@@ -1853,19 +2040,19 @@ function Analytics({ data }) {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-      <h2 style={{ fontFamily: "'Outfit', sans-serif", fontSize: 22, fontWeight: 800, margin: 0 }}>📊 Your Stats</h2>
+      <h2 style={{ fontFamily: "'Sora', sans-serif", fontSize: 22, fontWeight: 800, margin: 0 }}>📊 Your Stats</h2>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
         {[
           { label: "Total Revenue", value: formatCurrency(totalRevenue), emoji: "💰", color: "#34D399" },
           { label: "Total Hours", value: `${Math.round(totalHours * 10) / 10}h`, emoji: "⏱️", color: "#60A5FA" },
-          { label: "Jobs Done", value: completed.length, emoji: "✅", color: "#C084FC" },
-          { label: "Spaces Done", value: totalSpaces, emoji: "🏠", color: "#FF6B9D" },
+          { label: "Jobs Done", value: completed.length, emoji: "✅", color: "#FF69B4" },
+          { label: "Spaces Done", value: totalSpaces, emoji: "🏠", color: "#FF1493" },
           { label: "Avg Rating", value: avgRating ? `${avgRating.toFixed(1)} ⭐` : "—", emoji: "🌟", color: "#F59E0B" },
-          { label: "Avg Accuracy", value: avgDiff ? `±${avgDiff.toFixed(1)}h` : "—", emoji: "🎯", color: "#8B5CF6" },
+          { label: "Avg Accuracy", value: avgDiff ? `±${avgDiff.toFixed(1)}h` : "—", emoji: "🎯", color: "#E91E8B" },
         ].map((s) => (
           <Card key={s.label} style={{ padding: 14, textAlign: "center" }}>
             <div style={{ fontSize: 22 }}>{s.emoji}</div>
-            <div style={{ fontFamily: "'Outfit', sans-serif", fontSize: 18, fontWeight: 800, color: s.color }}>{s.value}</div>
+            <div style={{ fontFamily: "'Sora', sans-serif", fontSize: 18, fontWeight: 800, color: s.color }}>{s.value}</div>
             <div style={{ fontSize: 11, color: "#999", fontWeight: 600 }}>{s.label}</div>
           </Card>
         ))}
@@ -1874,7 +2061,7 @@ function Analytics({ data }) {
       {/* Accuracy */}
       {estimateAccuracy.length > 0 && (
         <Card>
-          <h3 style={{ fontFamily: "'Outfit', sans-serif", fontSize: 14, fontWeight: 700, margin: "0 0 10px" }}>🎯 Estimate Accuracy</h3>
+          <h3 style={{ fontFamily: "'Sora', sans-serif", fontSize: 14, fontWeight: 700, margin: "0 0 10px" }}>🎯 Estimate Accuracy</h3>
           {estimateAccuracy.map(j => (
             <div key={j.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "6px 0", borderBottom: "1px solid #F3F4F6", fontSize: 12 }}>
               <span style={{ fontWeight: 600 }}>{j.clientName}</span>
@@ -1890,7 +2077,7 @@ function Analytics({ data }) {
       {/* Revenue by space type */}
       {Object.keys(revenueByType).length > 0 && (
         <Card>
-          <h3 style={{ fontFamily: "'Outfit', sans-serif", fontSize: 14, fontWeight: 700, margin: "0 0 10px" }}>💎 Revenue by Space Type</h3>
+          <h3 style={{ fontFamily: "'Sora', sans-serif", fontSize: 14, fontWeight: 700, margin: "0 0 10px" }}>💎 Revenue by Space Type</h3>
           {Object.entries(revenueByType).sort((a, b) => b[1] - a[1]).map(([type, amount]) => {
             const pct = totalRevenue > 0 ? (amount / totalRevenue) * 100 : 0;
             const emoji = SPACE_TYPES.find(t => t.label === type)?.emoji || "📦";
@@ -1898,10 +2085,10 @@ function Analytics({ data }) {
               <div key={type} style={{ marginBottom: 10 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 4 }}>
                   <span style={{ fontWeight: 600 }}>{emoji} {type}</span>
-                  <span style={{ fontWeight: 700, color: "#7C3AED" }}>{formatCurrency(amount)}</span>
+                  <span style={{ fontWeight: 700, color: "#D6006E" }}>{formatCurrency(amount)}</span>
                 </div>
-                <div style={{ height: 8, borderRadius: 4, background: "#F3E8FF", overflow: "hidden" }}>
-                  <div style={{ height: "100%", borderRadius: 4, background: "linear-gradient(90deg, #FF6B9D, #C084FC)", width: `${Math.min(pct, 100)}%`, transition: "width 0.5s" }} />
+                <div style={{ height: 8, borderRadius: 4, background: "#FFE4F0", overflow: "hidden" }}>
+                  <div style={{ height: "100%", borderRadius: 4, background: "linear-gradient(90deg, #FF1493, #FF69B4)", width: `${Math.min(pct, 100)}%`, transition: "width 0.5s" }} />
                 </div>
               </div>
             );
@@ -1911,17 +2098,17 @@ function Analytics({ data }) {
 
       {/* Rate Analysis */}
       <Card>
-        <h3 style={{ fontFamily: "'Outfit', sans-serif", fontSize: 14, fontWeight: 700, margin: "0 0 10px" }}>💡 Rate Analysis</h3>
+        <h3 style={{ fontFamily: "'Sora', sans-serif", fontSize: 14, fontWeight: 700, margin: "0 0 10px" }}>💡 Rate Analysis</h3>
         <div style={{ fontSize: 13, color: "#666", lineHeight: 1.6 }}>
-          <p style={{ margin: "0 0 8px" }}>Current rate: <strong style={{ color: "#7C3AED" }}>{formatCurrency(data.settings.hourlyRate)}/hr</strong></p>
+          <p style={{ margin: "0 0 8px" }}>Current rate: <strong style={{ color: "#D6006E" }}>{formatCurrency(data.settings.hourlyRate)}/hr</strong></p>
           {totalHours > 0 && <p style={{ margin: "0 0 8px" }}>Effective rate: <strong style={{ color: totalRevenue / totalHours >= data.settings.hourlyRate ? "#059669" : "#DC2626" }}>{formatCurrency(totalRevenue / totalHours)}/hr</strong></p>}
-          {avgDiff > 1 && <p style={{ margin: 0, background: "#FFF5F7", padding: 8, borderRadius: 8, fontSize: 12 }}>💡 Your estimates are off by {avgDiff.toFixed(1)}h on average. Consider adjusting base times!</p>}
+          {avgDiff > 1 && <p style={{ margin: 0, background: "#FFF0F5", padding: 8, borderRadius: 8, fontSize: 12 }}>💡 Your estimates are off by {avgDiff.toFixed(1)}h on average. Consider adjusting base times!</p>}
         </div>
       </Card>
 
       {/* Feedback */}
       <Card>
-        <h3 style={{ fontFamily: "'Outfit', sans-serif", fontSize: 14, fontWeight: 700, margin: "0 0 10px" }}>💬 Client Feedback</h3>
+        <h3 style={{ fontFamily: "'Sora', sans-serif", fontSize: 14, fontWeight: 700, margin: "0 0 10px" }}>💬 Client Feedback</h3>
         {completed.filter(j => j.feedback).length > 0 ? (
           completed.filter(j => j.feedback).map(j => (
             <div key={j.id} style={{ padding: "8px 0", borderBottom: "1px solid #F3F4F6" }}>
@@ -2017,11 +2204,11 @@ function Settings({ settings, updateSettings, showToast, dbConnected, setDbConne
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-      <h2 style={{ fontFamily: "'Outfit', sans-serif", fontSize: 22, fontWeight: 800, margin: 0 }}>⚙️ Settings</h2>
+      <h2 style={{ fontFamily: "'Sora', sans-serif", fontSize: 22, fontWeight: 800, margin: 0 }}>⚙️ Settings</h2>
 
       {/* Database Setup */}
       <Card>
-        <h3 style={{ fontFamily: "'Outfit', sans-serif", fontSize: 14, fontWeight: 700, margin: "0 0 10px" }}>☁️ Database (Supabase)</h3>
+        <h3 style={{ fontFamily: "'Sora', sans-serif", fontSize: 14, fontWeight: 700, margin: "0 0 10px" }}>☁️ Database (Supabase)</h3>
 
         {dbConnected ? (
           <div style={{ background: "#ECFDF5", borderRadius: 10, padding: 10, marginBottom: 12, fontSize: 12, color: "#059669", fontWeight: 600, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -2045,15 +2232,15 @@ function Settings({ settings, updateSettings, showToast, dbConnected, setDbConne
           </GradientButton>
         </div>
 
-        <button onClick={() => setShowDbGuide(!showDbGuide)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 12, fontWeight: 600, color: "#C084FC", padding: 0 }}>
+        <button onClick={() => setShowDbGuide(!showDbGuide)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 12, fontWeight: 600, color: "#FF69B4", padding: 0 }}>
           {showDbGuide ? "▲ Hide setup guide" : "📖 How to set up Supabase (free, 5 min)"}
         </button>
 
         {showDbGuide && (
-          <div style={{ background: "#FDFBFF", border: "1.5px solid #F0E6FF", borderRadius: 12, padding: 14, marginTop: 8, fontSize: 12, color: "#555", lineHeight: 1.8 }}>
-            <div style={{ fontWeight: 700, color: "#7C3AED", marginBottom: 6, fontSize: 13 }}>🚀 Free Supabase Setup (500MB database)</div>
+          <div style={{ background: "#FFF5F8", border: "1.5px solid #FFD6E8", borderRadius: 12, padding: 14, marginTop: 8, fontSize: 12, color: "#555", lineHeight: 1.8 }}>
+            <div style={{ fontWeight: 700, color: "#D6006E", marginBottom: 6, fontSize: 13 }}>🚀 Free Supabase Setup (500MB database)</div>
             <div style={{ marginBottom: 8 }}>
-              <strong>Step 1:</strong> Go to <span style={{ color: "#7C3AED", fontWeight: 600 }}>supabase.com</span> → Sign up free → "New Project"
+              <strong>Step 1:</strong> Go to <span style={{ color: "#D6006E", fontWeight: 600 }}>supabase.com</span> → Sign up free → "New Project"
             </div>
             <div style={{ marginBottom: 8 }}>
               <strong>Step 2:</strong> Name it "sparklespace", set a password, choose a region → Create
@@ -2110,7 +2297,7 @@ CREATE POLICY "Allow all" ON photo_refs FOR ALL USING (true) WITH CHECK (true);`
 
       {/* Google Drive Photos */}
       <Card>
-        <h3 style={{ fontFamily: "'Outfit', sans-serif", fontSize: 14, fontWeight: 700, margin: "0 0 10px" }}>📁 Google Drive (Photo Storage)</h3>
+        <h3 style={{ fontFamily: "'Sora', sans-serif", fontSize: 14, fontWeight: 700, margin: "0 0 10px" }}>📁 Google Drive (Photo Storage)</h3>
         <div style={{ fontSize: 12, color: "#666", marginBottom: 12, lineHeight: 1.5 }}>
           Upload before/after photos to a Google Drive folder. The app stores the photo filename in the database so you can find it later.
         </div>
@@ -2124,7 +2311,7 @@ CREATE POLICY "Allow all" ON photo_refs FOR ALL USING (true) WITH CHECK (true);`
       
       {/* Email Setup */}
       <Card>
-        <h3 style={{ fontFamily: "'Outfit', sans-serif", fontSize: 14, fontWeight: 700, margin: "0 0 10px" }}>📧 Email Service (EmailJS)</h3>
+        <h3 style={{ fontFamily: "'Sora', sans-serif", fontSize: 14, fontWeight: 700, margin: "0 0 10px" }}>📧 Email Service (EmailJS)</h3>
         
         {(settings.emailjsPublicKey || DEFAULT_EMAILJS.publicKey) ? (
           <div style={{ background: "#ECFDF5", borderRadius: 10, padding: 10, marginBottom: 12, fontSize: 12, color: "#059669", fontWeight: 600 }}>
@@ -2149,15 +2336,15 @@ CREATE POLICY "Allow all" ON photo_refs FOR ALL USING (true) WITH CHECK (true);`
           )}
         </div>
 
-        <button onClick={() => setShowEmailGuide(!showEmailGuide)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 12, fontWeight: 600, color: "#C084FC", padding: 0 }}>
+        <button onClick={() => setShowEmailGuide(!showEmailGuide)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 12, fontWeight: 600, color: "#FF69B4", padding: 0 }}>
           {showEmailGuide ? "▲ Hide setup guide" : "📖 How to set up EmailJS (free, 5 min)"}
         </button>
 
         {showEmailGuide && (
-          <div style={{ background: "#FDFBFF", border: "1.5px solid #F0E6FF", borderRadius: 12, padding: 14, marginTop: 8, fontSize: 12, color: "#555", lineHeight: 1.8 }}>
-            <div style={{ fontWeight: 700, color: "#7C3AED", marginBottom: 6, fontSize: 13 }}>🚀 Free EmailJS Setup (200 emails/mo)</div>
+          <div style={{ background: "#FFF5F8", border: "1.5px solid #FFD6E8", borderRadius: 12, padding: 14, marginTop: 8, fontSize: 12, color: "#555", lineHeight: 1.8 }}>
+            <div style={{ fontWeight: 700, color: "#D6006E", marginBottom: 6, fontSize: 13 }}>🚀 Free EmailJS Setup (200 emails/mo)</div>
             <div style={{ marginBottom: 8 }}>
-              <strong>Step 1:</strong> Go to <span style={{ color: "#7C3AED", fontWeight: 600 }}>emailjs.com</span> → Sign up free
+              <strong>Step 1:</strong> Go to <span style={{ color: "#D6006E", fontWeight: 600 }}>emailjs.com</span> → Sign up free
             </div>
             <div style={{ marginBottom: 8 }}>
               <strong>Step 2:</strong> Click "Email Services" → "Add New Service" → Choose Gmail/Outlook/etc → Connect your email account → Copy the <strong>Service ID</strong>
@@ -2188,18 +2375,18 @@ Content (HTML): {{{message_html}}}`}
       </Card>
 
       <Card>
-        <h3 style={{ fontFamily: "'Outfit', sans-serif", fontSize: 14, fontWeight: 700, margin: "0 0 10px" }}>💰 Pricing</h3>
+        <h3 style={{ fontFamily: "'Sora', sans-serif", fontSize: 14, fontWeight: 700, margin: "0 0 10px" }}>💰 Pricing</h3>
         <Input label="Hourly Rate ($)" type="number" min="1" step="0.50" value={settings.hourlyRate} onChange={(e) => updateSettings({ hourlyRate: parseFloat(e.target.value) || DEFAULT_RATE })} />
         <div style={{ fontSize: 11, color: "#888", marginTop: -8, marginBottom: 12 }}>WA sales tax (10.25%) auto-applies for non-cash payments</div>
       </Card>
       <Card>
-        <h3 style={{ fontFamily: "'Outfit', sans-serif", fontSize: 14, fontWeight: 700, margin: "0 0 10px" }}>💳 Payment Integration</h3>
+        <h3 style={{ fontFamily: "'Sora', sans-serif", fontSize: 14, fontWeight: 700, margin: "0 0 10px" }}>💳 Payment Integration</h3>
         <Input label="Stripe Publishable Key" placeholder="pk_live_..." value={stripeKey} onChange={(e) => setStripeKey(e.target.value)} />
         <GradientButton onClick={() => { updateSettings({ stripeKey }); showToast("Stripe key saved! 💳"); }}>Save Stripe Key</GradientButton>
         <div style={{ fontSize: 11, color: "#888", marginTop: 8, lineHeight: 1.5 }}>🔗 Create a free Stripe account at stripe.com to accept card payments. Venmo & Zelle tracked manually.</div>
       </Card>
       <Card>
-        <h3 style={{ fontFamily: "'Outfit', sans-serif", fontSize: 14, fontWeight: 700, margin: "0 0 10px" }}>ℹ️ About SparkleSpace</h3>
+        <h3 style={{ fontFamily: "'Sora', sans-serif", fontSize: 14, fontWeight: 700, margin: "0 0 10px" }}>ℹ️ About SparkleSpace</h3>
         <div style={{ fontSize: 13, color: "#666", lineHeight: 1.6 }}>
           <p style={{ margin: "0 0 8px" }}>✨ <strong>SparkleSpace by Thea</strong></p>
           <p style={{ margin: "0 0 8px" }}>Your organizing business management app! Track assessments, schedule jobs, manage clients, handle payments, and grow your business. 🌟</p>
@@ -2207,7 +2394,7 @@ Content (HTML): {{{message_html}}}`}
         </div>
       </Card>
       <Card>
-        <h3 style={{ fontFamily: "'Outfit', sans-serif", fontSize: 14, fontWeight: 700, margin: "0 0 10px" }}>🗑️ Data</h3>
+        <h3 style={{ fontFamily: "'Sora', sans-serif", fontSize: 14, fontWeight: 700, margin: "0 0 10px" }}>🗑️ Data</h3>
         <GradientButton variant="danger" onClick={() => { if (confirm("Are you sure? This will delete ALL local data!")) { localStorage.removeItem(STORAGE_KEY); localStorage.removeItem(SUPABASE_CONFIG_KEY); localStorage.removeItem(GDRIVE_CONFIG_KEY); window.location.reload(); } }}>Reset All Local Data</GradientButton>
         <div style={{ fontSize: 11, color: "#888", marginTop: 8 }}>⚠️ This clears local cache. Database data (if connected) is preserved.</div>
       </Card>
