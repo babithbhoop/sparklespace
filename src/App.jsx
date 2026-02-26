@@ -4,12 +4,140 @@ import { useState, useEffect, useCallback, useRef } from "react";
 const WA_TAX_RATE = 0.1025;
 const DEFAULT_RATE = 22;
 const STORAGE_KEY = "sparkle_space_data";
+const SUPABASE_CONFIG_KEY = "sparkle_supabase_config";
+const GDRIVE_CONFIG_KEY = "sparkle_gdrive_config";
 const THEA_EMAIL = "babith@hotmail.com";
 const THEA_PHONE = "425-428-8687";
 
-// EmailJS free tier: 200 emails/month — perfect for a small biz
-const EMAILJS_CDN = "https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js";
+// Default Supabase credentials (SparkleSpace project)
+const DEFAULT_SUPABASE = {
+  url: "https://thsfabqlcpookyxsokay.supabase.co",
+  anonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRoc2ZhYnFsY3Bvb2t5eHNva2F5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwNjI4MDIsImV4cCI6MjA4NzYzODgwMn0.8Pv5PVpjpxpOQ1qArvgF6qas0qFwRmYhS6tAMKvUvWI",
+};
 
+// ─── Supabase REST Client (no SDK needed) ───
+function getSupabaseConfig() {
+  try {
+    const c = JSON.parse(localStorage.getItem(SUPABASE_CONFIG_KEY) || "null");
+    if (c?.url && c?.anonKey) return c;
+  } catch {}
+  // Fall back to hardcoded defaults
+  return DEFAULT_SUPABASE.url ? DEFAULT_SUPABASE : null;
+}
+
+function saveSupabaseConfig(config) {
+  localStorage.setItem(SUPABASE_CONFIG_KEY, JSON.stringify(config));
+}
+
+function getGDriveConfig() {
+  try {
+    return JSON.parse(localStorage.getItem(GDRIVE_CONFIG_KEY) || "null") || { folderId: "", folderUrl: "" };
+  } catch { return { folderId: "", folderUrl: "" }; }
+}
+
+function saveGDriveConfig(config) {
+  localStorage.setItem(GDRIVE_CONFIG_KEY, JSON.stringify(config));
+}
+
+async function supaFetch(path, { method = "GET", body, headers = {}, config } = {}) {
+  const cfg = config || getSupabaseConfig();
+  if (!cfg) throw new Error("SUPABASE_NOT_CONFIGURED");
+  const url = `${cfg.url}/rest/v1/${path}`;
+  const res = await fetch(url, {
+    method,
+    headers: {
+      apikey: cfg.anonKey,
+      Authorization: `Bearer ${cfg.anonKey}`,
+      "Content-Type": "application/json",
+      Prefer: method === "POST" ? "return=representation" : method === "PATCH" ? "return=representation" : undefined,
+      ...headers,
+    },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Supabase ${method} ${path}: ${res.status} ${text}`);
+  }
+  if (method === "DELETE") return null;
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
+}
+
+// ─── Database Operations ───
+const db = {
+  // Jobs
+  async loadJobs() {
+    const rows = await supaFetch("jobs?select=*&order=created_at.desc");
+    return rows.map(r => ({ ...JSON.parse(r.data), _dbId: r.id }));
+  },
+  async upsertJob(job) {
+    const dbId = job._dbId;
+    // Strip base64 photo data for DB (too large) — keep only metadata
+    const jobForDb = JSON.parse(JSON.stringify({ ...job, _dbId: undefined }));
+    if (jobForDb.spaces) {
+      jobForDb.spaces = jobForDb.spaces.map(s => ({
+        ...s,
+        beforePhotos: (s.beforePhotos || []).map(p => ({ ...p, url: p.gdriveUrl || "[local]" })),
+        afterPhotos: (s.afterPhotos || []).map(p => ({ ...p, url: p.gdriveUrl || "[local]" })),
+      }));
+    }
+    const payload = { id: job.id, data: JSON.stringify(jobForDb), updated_at: new Date().toISOString() };
+    if (dbId) {
+      const rows = await supaFetch(`jobs?id=eq.${dbId}`, { method: "PATCH", body: payload });
+      return rows?.[0] ? { ...JSON.parse(rows[0].data), _dbId: rows[0].id } : job;
+    } else {
+      payload.created_at = new Date().toISOString();
+      const rows = await supaFetch("jobs", { method: "POST", body: payload });
+      return rows?.[0] ? { ...JSON.parse(rows[0].data), _dbId: rows[0].id } : job;
+    }
+  },
+  async deleteJob(jobId) {
+    await supaFetch(`jobs?id=eq.${jobId}`, { method: "DELETE" });
+  },
+
+  // Settings
+  async loadSettings() {
+    const rows = await supaFetch("app_settings?select=*&key=eq.main&limit=1");
+    if (rows?.[0]) return JSON.parse(rows[0].data);
+    return null;
+  },
+  async saveSettings(settings) {
+    const payload = { key: "main", data: JSON.stringify(settings), updated_at: new Date().toISOString() };
+    // Try update first, then insert
+    const existing = await supaFetch("app_settings?key=eq.main&select=key");
+    if (existing?.length > 0) {
+      await supaFetch("app_settings?key=eq.main", { method: "PATCH", body: payload });
+    } else {
+      await supaFetch("app_settings", { method: "POST", body: { ...payload, created_at: new Date().toISOString() } });
+    }
+  },
+
+  // Photos — store reference (gdrive link + filename)
+  async savePhotoRef({ jobId, spaceId, type, filename, gdriveUrl }) {
+    return supaFetch("photo_refs", {
+      method: "POST",
+      body: { job_id: jobId, space_id: spaceId, photo_type: type, filename, gdrive_url: gdriveUrl, created_at: new Date().toISOString() },
+    });
+  },
+  async loadPhotoRefs(jobId) {
+    return supaFetch(`photo_refs?job_id=eq.${jobId}&select=*`);
+  },
+  async deletePhotoRef(id) {
+    await supaFetch(`photo_refs?id=eq.${id}`, { method: "DELETE" });
+  },
+
+  // Test connection
+  async testConnection(config) {
+    try {
+      await supaFetch("jobs?select=id&limit=1", { config });
+      return { ok: true };
+    } catch (err) {
+      return { ok: false, error: err.message };
+    }
+  },
+};
+
+// EmailJS free tier: 200 emails/month — perfect for a small biz
 // Default EmailJS credentials (Thea's account)
 const DEFAULT_EMAILJS = {
   serviceId: "service_TheaApp",
@@ -17,24 +145,7 @@ const DEFAULT_EMAILJS = {
   publicKey: "Zp60lxBPh3IE_O58V",
 };
 
-// Load EmailJS script dynamically
-function loadEmailJS() {
-  return new Promise((resolve, reject) => {
-    if (window.emailjs) return resolve(window.emailjs);
-    const existing = document.querySelector(`script[src="${EMAILJS_CDN}"]`);
-    if (existing) {
-      existing.addEventListener("load", () => resolve(window.emailjs));
-      return;
-    }
-    const script = document.createElement("script");
-    script.src = EMAILJS_CDN;
-    script.onload = () => resolve(window.emailjs);
-    script.onerror = () => reject(new Error("Failed to load EmailJS"));
-    document.head.appendChild(script);
-  });
-}
-
-// Send email via EmailJS
+// Send email via EmailJS REST API (no CDN/SDK needed)
 async function sendEmail({ to, cc, subject, htmlBody, settings }) {
   const serviceId = settings?.emailjsServiceId || DEFAULT_EMAILJS.serviceId;
   const templateId = settings?.emailjsTemplateId || DEFAULT_EMAILJS.templateId;
@@ -44,17 +155,29 @@ async function sendEmail({ to, cc, subject, htmlBody, settings }) {
     throw new Error("EMAIL_NOT_CONFIGURED");
   }
 
-  const ejs = await loadEmailJS();
-  ejs.init(publicKey);
-
-  return ejs.send(serviceId, templateId, {
-    to_email: to,
-    cc_email: cc || "",
-    subject: subject,
-    message_html: htmlBody,
-    from_name: "SparkleSpace by Thea",
-    reply_to: THEA_EMAIL,
+  const response = await fetch("https://api.emailjs.com/api/v1.0/email/send", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      service_id: serviceId,
+      template_id: templateId,
+      user_id: publicKey,
+      template_params: {
+        to_email: to,
+        cc_email: cc || "",
+        subject: subject,
+        message_html: htmlBody,
+        from_name: "SparkleSpace by Thea",
+        reply_to: THEA_EMAIL,
+      },
+    }),
   });
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(text || "Email send failed");
+  }
+  return response;
 }
 
 // Build pretty HTML email body
@@ -172,8 +295,51 @@ export default function SparkleSpaceApp() {
   const [selectedJob, setSelectedJob] = useState(null);
   const [showNewJob, setShowNewJob] = useState(false);
   const [toast, setToast] = useState(null);
+  const [dbConnected, setDbConnected] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+  const syncTimeout = useRef(null);
 
+  // Save to localStorage always (instant cache)
   useEffect(() => { saveData(data); }, [data]);
+
+  // Initial load: try Supabase, fall back to localStorage
+  useEffect(() => {
+    const cfg = getSupabaseConfig();
+    if (!cfg) return;
+    setSyncing(true);
+    Promise.all([db.loadJobs(), db.loadSettings()])
+      .then(([jobs, settings]) => {
+        setDbConnected(true);
+        setData(prev => ({
+          ...prev,
+          jobs: jobs.length > 0 ? jobs : prev.jobs,
+          settings: settings ? { ...prev.settings, ...settings } : prev.settings,
+        }));
+      })
+      .catch(err => { console.warn("Supabase load failed, using local:", err); setDbConnected(false); })
+      .finally(() => setSyncing(false));
+  }, []);
+
+  // Debounced sync to Supabase on data changes
+  const syncToSupabase = useCallback((newData) => {
+    if (!getSupabaseConfig()) return;
+    if (syncTimeout.current) clearTimeout(syncTimeout.current);
+    syncTimeout.current = setTimeout(async () => {
+      try {
+        // Sync all jobs
+        const syncedJobs = await Promise.all(
+          newData.jobs.map(job => db.upsertJob(job).catch(err => { console.warn("Job sync failed:", err); return job; }))
+        );
+        // Sync settings
+        await db.saveSettings(newData.settings).catch(err => console.warn("Settings sync failed:", err));
+        // Update local data with any _dbId values from Supabase
+        setData(prev => ({ ...prev, jobs: syncedJobs }));
+        setDbConnected(true);
+      } catch (err) {
+        console.warn("Supabase sync failed:", err);
+      }
+    }, 1500); // 1.5s debounce
+  }, []);
 
   const showToast = (msg, type = "success") => {
     setToast({ msg, type });
@@ -181,16 +347,57 @@ export default function SparkleSpaceApp() {
   };
 
   const updateJob = (id, updates) => {
-    setData((prev) => ({ ...prev, jobs: prev.jobs.map((j) => (j.id === id ? { ...j, ...updates } : j)) }));
+    setData((prev) => {
+      const newData = { ...prev, jobs: prev.jobs.map((j) => (j.id === id ? { ...j, ...updates } : j)) };
+      syncToSupabase(newData);
+      return newData;
+    });
   };
 
   const addJob = (job) => {
-    setData((prev) => ({ ...prev, jobs: [job, ...prev.jobs] }));
+    setData((prev) => {
+      const newData = { ...prev, jobs: [job, ...prev.jobs] };
+      syncToSupabase(newData);
+      return newData;
+    });
     showToast("Job created! ✨");
   };
 
+  const deleteJob = (id) => {
+    const job = data.jobs.find(j => j.id === id);
+    if (job?._dbId && getSupabaseConfig()) {
+      db.deleteJob(job._dbId).catch(err => console.warn("Delete from DB failed:", err));
+    }
+    setData((prev) => ({ ...prev, jobs: prev.jobs.filter(j => j.id !== id) }));
+    showToast("Job deleted");
+  };
+
   const updateSettings = (settings) => {
-    setData((prev) => ({ ...prev, settings: { ...prev.settings, ...settings } }));
+    setData((prev) => {
+      const newData = { ...prev, settings: { ...prev.settings, ...settings } };
+      syncToSupabase(newData);
+      return newData;
+    });
+  };
+
+  // Force re-sync from Supabase
+  const forceSync = async () => {
+    const cfg = getSupabaseConfig();
+    if (!cfg) return showToast("Set up database in Settings first!", "error");
+    setSyncing(true);
+    try {
+      const [jobs, settings] = await Promise.all([db.loadJobs(), db.loadSettings()]);
+      setData(prev => ({
+        ...prev,
+        jobs: jobs.length > 0 ? jobs : prev.jobs,
+        settings: settings ? { ...prev.settings, ...settings } : prev.settings,
+      }));
+      setDbConnected(true);
+      showToast("Synced from database! ☁️");
+    } catch (err) {
+      showToast("Sync failed: " + err.message, "error");
+    }
+    setSyncing(false);
   };
 
   const openJob = (id) => { setSelectedJob(id); setCurrentView("job-detail"); };
@@ -217,7 +424,10 @@ export default function SparkleSpaceApp() {
         <div style={{ maxWidth: 600, margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div>
             <h1 style={{ fontFamily: "'Outfit', sans-serif", fontSize: 24, fontWeight: 800, margin: 0, letterSpacing: -0.5 }}>✨ SparkleSpace</h1>
-            <p style={{ fontSize: 11, opacity: 0.9, margin: 0, fontWeight: 500 }}>by Thea • Organization Magic</p>
+            <p style={{ fontSize: 11, opacity: 0.9, margin: 0, fontWeight: 500 }}>
+              by Thea • Organization Magic
+              {dbConnected && <span style={{ marginLeft: 6, fontSize: 9, background: "rgba(255,255,255,0.3)", padding: "1px 6px", borderRadius: 8 }}>{syncing ? "⏳ syncing..." : "☁️ cloud"}</span>}
+            </p>
           </div>
           <button onClick={() => { setShowNewJob(true); setCurrentView("jobs"); }} style={{ background: "rgba(255,255,255,0.25)", border: "2px solid rgba(255,255,255,0.5)", borderRadius: 14, padding: "8px 16px", color: "#fff", fontWeight: 700, fontSize: 14, cursor: "pointer", backdropFilter: "blur(10px)" }}>
             + New Job
@@ -231,7 +441,7 @@ export default function SparkleSpaceApp() {
         {currentView === "job-detail" && selectedJob && <JobDetail job={data.jobs.find(j => j.id === selectedJob)} updateJob={updateJob} settings={data.settings} showToast={showToast} setCurrentView={setCurrentView} />}
         {currentView === "calendar" && <CalendarView data={data} openJob={openJob} />}
         {currentView === "analytics" && <Analytics data={data} />}
-        {currentView === "settings" && <Settings settings={data.settings} updateSettings={updateSettings} showToast={showToast} />}
+        {currentView === "settings" && <Settings settings={data.settings} updateSettings={updateSettings} showToast={showToast} dbConnected={dbConnected} setDbConnected={setDbConnected} forceSync={forceSync} syncing={syncing} />}
       </main>
 
       <nav style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: "rgba(255,255,255,0.95)", backdropFilter: "blur(20px)", borderTop: "1px solid rgba(0,0,0,0.06)", padding: "8px 0 max(8px, env(safe-area-inset-bottom))", zIndex: 100 }}>
@@ -320,19 +530,36 @@ function StatusBadge({ status }) {
   );
 }
 
-function PhotoUpload({ photos = [], onPhotosChange, label }) {
+function PhotoUpload({ photos = [], onPhotosChange, label, jobName, spaceType, photoType }) {
   const fileRef = useRef(null);
   const handleFiles = (e) => {
     const files = Array.from(e.target.files);
     files.forEach(file => {
       const reader = new FileReader();
       reader.onload = (ev) => {
-        onPhotosChange([...photos, { id: generateId(), url: ev.target.result, timestamp: new Date().toISOString() }]);
+        // Generate a descriptive filename for GDrive lookup
+        const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+        const safeName = (jobName || "job").replace(/[^a-zA-Z0-9]/g, "-").slice(0, 20);
+        const safeSpace = (spaceType || "space").replace(/[^a-zA-Z0-9]/g, "-").slice(0, 15);
+        const descriptiveFilename = `SparkleSpace_${safeName}_${safeSpace}_${photoType || "photo"}_${timestamp}${file.name.match(/\.[^.]+$/)?.[0] || ".jpg"}`;
+        
+        onPhotosChange([...photos, {
+          id: generateId(),
+          url: ev.target.result,
+          timestamp: new Date().toISOString(),
+          originalName: file.name,
+          descriptiveFilename,
+          gdriveUrl: "", // filled in when uploaded to GDrive
+        }]);
       };
       reader.readAsDataURL(file);
     });
   };
   const removePhoto = (id) => onPhotosChange(photos.filter(p => p.id !== id));
+  
+  const gdriveConfig = getGDriveConfig();
+  const hasGDrive = gdriveConfig?.folderUrl;
+  
   return (
     <div style={{ marginBottom: 14 }}>
       <label style={{ fontSize: 12, fontWeight: 600, color: "#666", marginBottom: 8, display: "block" }}>{label}</label>
@@ -340,6 +567,7 @@ function PhotoUpload({ photos = [], onPhotosChange, label }) {
         {photos.map(p => (
           <div key={p.id} style={{ position: "relative", width: 72, height: 72, borderRadius: 12, overflow: "hidden" }}>
             <img src={p.url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+            {p.gdriveUrl && <div style={{ position: "absolute", bottom: 2, left: 2, background: "rgba(34,197,94,0.9)", borderRadius: 4, padding: "0 4px", fontSize: 8, color: "#fff", fontWeight: 700 }}>☁️</div>}
             <button onClick={(e) => { e.stopPropagation(); removePhoto(p.id); }} style={{ position: "absolute", top: 2, right: 2, background: "rgba(0,0,0,0.6)", color: "#fff", border: "none", borderRadius: "50%", width: 18, height: 18, fontSize: 11, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>×</button>
           </div>
         ))}
@@ -347,13 +575,21 @@ function PhotoUpload({ photos = [], onPhotosChange, label }) {
           <span style={{ fontSize: 20 }}>📸</span>Add
         </button>
       </div>
+      {hasGDrive && photos.length > 0 && (
+        <div style={{ marginTop: 6, fontSize: 10, color: "#8B5CF6" }}>
+          📁 Upload photos to <a href={gdriveConfig.folderUrl} target="_blank" rel="noopener noreferrer" style={{ color: "#7C3AED", fontWeight: 600 }}>Google Drive folder</a> with these names for easy lookup
+          {photos.filter(p => p.descriptiveFilename).map(p => (
+            <div key={p.id} style={{ fontFamily: "monospace", fontSize: 9, color: "#666", marginTop: 2, wordBreak: "break-all" }}>📎 {p.descriptiveFilename}</div>
+          ))}
+        </div>
+      )}
       <input ref={fileRef} type="file" accept="image/*" multiple capture="environment" onChange={handleFiles} style={{ display: "none" }} />
     </div>
   );
 }
 
 // ─── Space Editor Card (used in both NewJob and JobDetail) ───
-function SpaceEditorCard({ space, index, total, onUpdate, onRemove, collapsed, onToggle }) {
+function SpaceEditorCard({ space, index, total, onUpdate, onRemove, collapsed, onToggle, jobName }) {
   const emoji = SPACE_TYPES.find(t => t.label === space.spaceType)?.emoji || "📦";
   const hours = estimateSpaceHours(space.spaceType, space.size, space.clutterLevel);
 
@@ -435,7 +671,7 @@ function SpaceEditorCard({ space, index, total, onUpdate, onRemove, collapsed, o
 
           <TextArea label="Notes for this space" placeholder="What needs to be done here?" value={space.notes || ""} onChange={(e) => updateField("notes", e.target.value)} />
           
-          <PhotoUpload label="📸 Before Photos" photos={space.beforePhotos || []} onPhotosChange={(p) => updateField("beforePhotos", p)} />
+          <PhotoUpload label="📸 Before Photos" photos={space.beforePhotos || []} onPhotosChange={(p) => updateField("beforePhotos", p)} jobName={jobName} spaceType={space.spaceType} photoType="before" />
 
           {/* Per-space estimate with override */}
           <div style={{ background: "linear-gradient(135deg, #FFF5F7, #F3E8FF)", borderRadius: 12, padding: 10, marginTop: 4 }}>
@@ -1280,6 +1516,9 @@ function JobDetail({ job, updateJob, settings, showToast, setCurrentView }) {
                 const updated = { ...space, afterPhotos: p };
                 updateSpace(index, updated);
               }}
+              jobName={job.clientName}
+              spaceType={space.spaceType}
+              photoType="after"
             />
           </div>
         ))}
@@ -1702,13 +1941,25 @@ function Analytics({ data }) {
 }
 
 // ─── Settings ───
-function Settings({ settings, updateSettings, showToast }) {
+function Settings({ settings, updateSettings, showToast, dbConnected, setDbConnected, forceSync, syncing }) {
   const [stripeKey, setStripeKey] = useState(settings.stripeKey || "");
   const [ejsService, setEjsService] = useState(settings.emailjsServiceId || DEFAULT_EMAILJS.serviceId);
   const [ejsTemplate, setEjsTemplate] = useState(settings.emailjsTemplateId || DEFAULT_EMAILJS.templateId);
   const [ejsPublic, setEjsPublic] = useState(settings.emailjsPublicKey || DEFAULT_EMAILJS.publicKey);
   const [showEmailGuide, setShowEmailGuide] = useState(false);
+  const [showDbGuide, setShowDbGuide] = useState(false);
   const [testSending, setTestSending] = useState(false);
+
+  // Supabase config
+  const supaConfig = getSupabaseConfig() || {};
+  const [supaUrl, setSupaUrl] = useState(supaConfig.url || DEFAULT_SUPABASE.url || "");
+  const [supaKey, setSupaKey] = useState(supaConfig.anonKey || DEFAULT_SUPABASE.anonKey || "");
+  const [dbTesting, setDbTesting] = useState(false);
+
+  // GDrive config
+  const gdriveConfig = getGDriveConfig();
+  const [gdriveFolderId, setGdriveFolderId] = useState(gdriveConfig.folderId || "");
+  const [gdriveFolderUrl, setGdriveFolderUrl] = useState(gdriveConfig.folderUrl || "");
 
   const saveEmailSettings = () => {
     updateSettings({ emailjsServiceId: ejsService, emailjsTemplateId: ejsTemplate, emailjsPublicKey: ejsPublic });
@@ -1737,9 +1988,139 @@ function Settings({ settings, updateSettings, showToast }) {
     setTestSending(false);
   };
 
+  const saveDbConfig = async () => {
+    if (!supaUrl || !supaKey) return showToast("Enter both URL and key!", "error");
+    const cleanUrl = supaUrl.replace(/\/$/, "");
+    setDbTesting(true);
+    const result = await db.testConnection({ url: cleanUrl, anonKey: supaKey });
+    if (result.ok) {
+      saveSupabaseConfig({ url: cleanUrl, anonKey: supaKey });
+      setDbConnected(true);
+      showToast("Database connected! ☁️");
+    } else {
+      showToast("Connection failed: " + result.error, "error");
+    }
+    setDbTesting(false);
+  };
+
+  const saveGDriveSettings = () => {
+    // Extract folder ID from URL if pasted
+    let folderId = gdriveFolderId;
+    if (gdriveFolderUrl && !folderId) {
+      const match = gdriveFolderUrl.match(/\/folders\/([a-zA-Z0-9_-]+)/);
+      if (match) folderId = match[1];
+    }
+    saveGDriveConfig({ folderId, folderUrl: gdriveFolderUrl });
+    setGdriveFolderId(folderId);
+    showToast("Google Drive settings saved! 📁");
+  };
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
       <h2 style={{ fontFamily: "'Outfit', sans-serif", fontSize: 22, fontWeight: 800, margin: 0 }}>⚙️ Settings</h2>
+
+      {/* Database Setup */}
+      <Card>
+        <h3 style={{ fontFamily: "'Outfit', sans-serif", fontSize: 14, fontWeight: 700, margin: "0 0 10px" }}>☁️ Database (Supabase)</h3>
+
+        {dbConnected ? (
+          <div style={{ background: "#ECFDF5", borderRadius: 10, padding: 10, marginBottom: 12, fontSize: 12, color: "#059669", fontWeight: 600, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span>✅ Connected — data syncs automatically!</span>
+            <button onClick={forceSync} disabled={syncing} style={{ background: "none", border: "1px solid #059669", borderRadius: 8, padding: "3px 10px", color: "#059669", fontSize: 11, fontWeight: 600, cursor: "pointer", opacity: syncing ? 0.5 : 1 }}>
+              {syncing ? "⏳..." : "🔄 Sync"}
+            </button>
+          </div>
+        ) : (
+          <div style={{ background: "#FFF3E0", borderRadius: 10, padding: 10, marginBottom: 12, fontSize: 12, color: "#E65100", fontWeight: 600 }}>
+            ⚠️ No database — data only saved locally in this browser
+          </div>
+        )}
+
+        <Input label="Supabase Project URL" placeholder="https://xxxxx.supabase.co" value={supaUrl} onChange={(e) => setSupaUrl(e.target.value)} />
+        <Input label="Anon (Public) Key" placeholder="eyJhbGci..." value={supaKey} onChange={(e) => setSupaKey(e.target.value)} />
+
+        <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+          <GradientButton onClick={saveDbConfig} style={{ flex: 1, opacity: dbTesting ? 0.6 : 1 }}>
+            {dbTesting ? "⏳ Testing..." : "🔌 Connect & Test"}
+          </GradientButton>
+        </div>
+
+        <button onClick={() => setShowDbGuide(!showDbGuide)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 12, fontWeight: 600, color: "#C084FC", padding: 0 }}>
+          {showDbGuide ? "▲ Hide setup guide" : "📖 How to set up Supabase (free, 5 min)"}
+        </button>
+
+        {showDbGuide && (
+          <div style={{ background: "#FDFBFF", border: "1.5px solid #F0E6FF", borderRadius: 12, padding: 14, marginTop: 8, fontSize: 12, color: "#555", lineHeight: 1.8 }}>
+            <div style={{ fontWeight: 700, color: "#7C3AED", marginBottom: 6, fontSize: 13 }}>🚀 Free Supabase Setup (500MB database)</div>
+            <div style={{ marginBottom: 8 }}>
+              <strong>Step 1:</strong> Go to <span style={{ color: "#7C3AED", fontWeight: 600 }}>supabase.com</span> → Sign up free → "New Project"
+            </div>
+            <div style={{ marginBottom: 8 }}>
+              <strong>Step 2:</strong> Name it "sparklespace", set a password, choose a region → Create
+            </div>
+            <div style={{ marginBottom: 8 }}>
+              <strong>Step 3:</strong> Go to <strong>SQL Editor</strong> → paste this and click "Run":
+            </div>
+            <div style={{ background: "#1a1a2e", borderRadius: 8, padding: 12, fontFamily: "monospace", fontSize: 10.5, color: "#A5F3FC", marginBottom: 8, whiteSpace: "pre-wrap", overflowX: "auto" }}>
+{`-- Jobs table
+CREATE TABLE jobs (
+  id TEXT PRIMARY KEY,
+  data JSONB NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Settings table
+CREATE TABLE app_settings (
+  key TEXT PRIMARY KEY,
+  data JSONB NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Photo references table
+CREATE TABLE photo_refs (
+  id SERIAL PRIMARY KEY,
+  job_id TEXT NOT NULL,
+  space_id TEXT,
+  photo_type TEXT,
+  filename TEXT,
+  gdrive_url TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Enable Row Level Security (open for anon)
+ALTER TABLE jobs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE app_settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE photo_refs ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Allow all" ON jobs FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Allow all" ON app_settings FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Allow all" ON photo_refs FOR ALL USING (true) WITH CHECK (true);`}
+            </div>
+            <div style={{ marginBottom: 8 }}>
+              <strong>Step 4:</strong> Go to <strong>Settings → API</strong> → Copy <strong>Project URL</strong> and <strong>anon public</strong> key
+            </div>
+            <div style={{ background: "#ECFDF5", borderRadius: 8, padding: 8, fontWeight: 600, color: "#059669" }}>
+              ✅ Paste both above and click "Connect & Test"!
+            </div>
+          </div>
+        )}
+      </Card>
+
+      {/* Google Drive Photos */}
+      <Card>
+        <h3 style={{ fontFamily: "'Outfit', sans-serif", fontSize: 14, fontWeight: 700, margin: "0 0 10px" }}>📁 Google Drive (Photo Storage)</h3>
+        <div style={{ fontSize: 12, color: "#666", marginBottom: 12, lineHeight: 1.5 }}>
+          Upload before/after photos to a Google Drive folder. The app stores the photo filename in the database so you can find it later.
+        </div>
+        <Input label="Google Drive Folder URL" placeholder="https://drive.google.com/drive/folders/..." value={gdriveFolderUrl} onChange={(e) => setGdriveFolderUrl(e.target.value)} />
+        <Input label="Folder ID (auto-extracted)" placeholder="Auto-fills from URL above" value={gdriveFolderId} onChange={(e) => setGdriveFolderId(e.target.value)} />
+        <GradientButton onClick={saveGDriveSettings}>💾 Save Drive Settings</GradientButton>
+        <div style={{ fontSize: 11, color: "#888", marginTop: 8, lineHeight: 1.5 }}>
+          📌 Create a folder in Google Drive called "SparkleSpace Photos" → Right-click → "Share" → Copy link → Paste above. Photos you take in the app will be named with the job/client info for easy lookup.
+        </div>
+      </Card>
       
       {/* Email Setup */}
       <Card>
@@ -1791,7 +2172,7 @@ CC: {{cc_email}}
 From Name: {{from_name}}
 Reply To: {{reply_to}}
 
-Content (HTML): {{message_html}}`}
+Content (HTML): {{{message_html}}}`}
             </div>
             <div style={{ marginBottom: 8 }}>
               <strong>Step 4:</strong> Save template → Copy the <strong>Template ID</strong>
@@ -1822,12 +2203,13 @@ Content (HTML): {{message_html}}`}
         <div style={{ fontSize: 13, color: "#666", lineHeight: 1.6 }}>
           <p style={{ margin: "0 0 8px" }}>✨ <strong>SparkleSpace by Thea</strong></p>
           <p style={{ margin: "0 0 8px" }}>Your organizing business management app! Track assessments, schedule jobs, manage clients, handle payments, and grow your business. 🌟</p>
-          <p style={{ margin: 0, fontSize: 11, color: "#999" }}>v1.4 • EmailJS Integration • Made with 💜</p>
+          <p style={{ margin: 0, fontSize: 11, color: "#999" }}>v1.5 • Supabase + EmailJS • Made with 💜</p>
         </div>
       </Card>
       <Card>
         <h3 style={{ fontFamily: "'Outfit', sans-serif", fontSize: 14, fontWeight: 700, margin: "0 0 10px" }}>🗑️ Data</h3>
-        <GradientButton variant="danger" onClick={() => { if (confirm("Are you sure? This will delete ALL data!")) { localStorage.removeItem(STORAGE_KEY); window.location.reload(); } }}>Reset All Data</GradientButton>
+        <GradientButton variant="danger" onClick={() => { if (confirm("Are you sure? This will delete ALL local data!")) { localStorage.removeItem(STORAGE_KEY); localStorage.removeItem(SUPABASE_CONFIG_KEY); localStorage.removeItem(GDRIVE_CONFIG_KEY); window.location.reload(); } }}>Reset All Local Data</GradientButton>
+        <div style={{ fontSize: 11, color: "#888", marginTop: 8 }}>⚠️ This clears local cache. Database data (if connected) is preserved.</div>
       </Card>
     </div>
   );
