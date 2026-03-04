@@ -1939,8 +1939,8 @@ function JobDetail({ job, allJobs, updateJob, deleteJob, settings, showToast, se
                 scheduleDays={job.scheduleDays || []}
                 totalHours={job.estimatedHours || 0}
                 onChange={(days) => {
-                  const sorted = [...days].filter(d => d.date).sort((a, b) => a.date.localeCompare(b.date));
-                  updateJob(job.id, { scheduleDays: sorted, scheduledDate: sorted[0]?.date || "", scheduledTime: sorted[0]?.startTime || "" });
+                  const withDates = days.filter(d => d.date).sort((a, b) => a.date.localeCompare(b.date));
+                  updateJob(job.id, { scheduleDays: days, scheduledDate: withDates[0]?.date || "", scheduledTime: withDates[0]?.startTime || "" });
                 }}
               />
               <GradientButton onClick={sendScheduleToClient} style={{ opacity: sending ? 0.6 : 1, pointerEvents: sending ? "none" : "auto" }}>
