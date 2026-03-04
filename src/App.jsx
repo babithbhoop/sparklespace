@@ -184,21 +184,21 @@ async function sendEmail({ to, cc, subject, htmlBody, settings }) {
 function buildEmailHTML({ greeting, sections, cta, footer }) {
   const sectionHTML = sections.map(s => 
     `<div style="margin-bottom:16px;">` +
-    (s.title ? `<div style="font-weight:700;color:#D6006E;font-size:14px;margin-bottom:6px;">${s.title}</div>` : "") +
+    (s.title ? `<div style="font-weight:700;color:#FF0080;font-size:14px;margin-bottom:6px;">${s.title}</div>` : "") +
     `<div style="color:#444;font-size:13px;line-height:1.6;white-space:pre-line;">${s.content}</div>` +
     `</div>`
   ).join("");
 
   return `
     <div style="font-family:sans-serif;max-width:520px;margin:0 auto;padding:24px;">
-      <div style="background:linear-gradient(135deg,#FF1493,#FF69B4,#FF85C8);padding:20px 24px;border-radius:16px 16px 0 0;color:#fff;">
+      <div style="background:linear-gradient(135deg,#FF3CAC,#FF0080);padding:20px 24px;border-radius:16px 16px 0 0;color:#fff;">
         <h1 style="margin:0;font-size:20px;">✨ SparkleSpace</h1>
-        <p style="margin:4px 0 0;font-size:12px;opacity:0.9;">by Thea • Organization Magic</p>
+        <p style="margin:4px 0 0;font-size:12px;color:#FFB3D1;">by Thea • Organization Magic</p>
       </div>
       <div style="background:#fff;padding:24px;border:1px solid #eee;border-top:none;border-radius:0 0 16px 16px;">
         <p style="font-size:15px;color:#333;margin:0 0 16px;">${greeting}</p>
         ${sectionHTML}
-        ${cta ? `<div style="background:linear-gradient(135deg,#FFF0F5,#FFE4F0);border-radius:12px;padding:14px;text-align:center;margin:16px 0;font-size:14px;font-weight:700;color:#D6006E;">${cta}</div>` : ""}
+        ${cta ? `<div style="background:linear-gradient(135deg,#FFF5F9,#FFE0F0);border-radius:12px;padding:14px;text-align:center;margin:16px 0;font-size:14px;font-weight:700;color:#FF0080;">${cta}</div>` : ""}
         <div style="border-top:1px solid #eee;padding-top:16px;margin-top:16px;font-size:12px;color:#888;line-height:1.5;">
           ${footer || `✨ Thea<br>SparkleSpace Organization<br>📱 ${THEA_PHONE}<br>📧 ${THEA_EMAIL}`}
         </div>
@@ -230,15 +230,15 @@ const DAYS_OF_WEEK = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const TIME_SLOTS = ["Morning (8-12)", "Afternoon (12-4)", "Evening (4-8)"];
 
 const STATUS_COLORS = {
-  assessment: { bg: "#FFF3E0", text: "#E65100", border: "#FFB74D" },
-  "estimate-sent": { bg: "#FFF8E1", text: "#F57F17", border: "#FFD54F" },
-  "estimate-approved": { bg: "#E8F5E9", text: "#2E7D32", border: "#81C784" },
-  "schedule-sent": { bg: "#E1F5FE", text: "#0277BD", border: "#4FC3F7" },
-  scheduled: { bg: "#E3F2FD", text: "#1565C0", border: "#64B5F6" },
-  "in-progress": { bg: "#FCE4EC", text: "#C62828", border: "#EF9A9A" },
-  completed: { bg: "#E8F5E9", text: "#2E7D32", border: "#81C784" },
-  invoiced: { bg: "#F3E5F5", text: "#6A1B9A", border: "#CE93D8" },
-  paid: { bg: "#E0F7FA", text: "#00695C", border: "#80CBC4" },
+  assessment: { bg: "#FFD6C0", text: "#E65100", border: "#FFB088" },
+  "estimate-sent": { bg: "#FFF3E0", text: "#E65100", border: "#FFD6A5" },
+  "estimate-approved": { bg: "#B8F0E0", text: "#00695C", border: "#80CBC4" },
+  "schedule-sent": { bg: "#E8C5F5", text: "#6A1B9A", border: "#CE93D8" },
+  scheduled: { bg: "#E8C5F5", text: "#6A1B9A", border: "#CE93D8" },
+  "in-progress": { bg: "linear-gradient(135deg, #FFB3D1, #FF3CAC)", text: "#fff", border: "#FF80AB" },
+  completed: { bg: "#B8F0E0", text: "#00695C", border: "#80CBC4" },
+  invoiced: { bg: "#E8C5F5", text: "#6A1B9A", border: "#CE93D8" },
+  paid: { bg: "linear-gradient(135deg, #B8F0E0, #34D399)", text: "#00695C", border: "#80CBC4" },
 };
 
 function createEmptySpace() {
@@ -411,25 +411,25 @@ export default function SparkleSpaceApp() {
   ];
 
   return (
-    <div style={{ minHeight: "100vh", background: "linear-gradient(135deg, #FFF0F5 0%, #FFF0E5 30%, #F0F7FF 70%, #F5F0FF 100%)", fontFamily: "'Poppins', sans-serif" }}>
-      <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet" />
+    <div style={{ minHeight: "100vh", background: "linear-gradient(180deg, #FFD6C0 0%, #E8C5F5 40%, #B8F0E0 100%)", fontFamily: "'Poppins', sans-serif", color: "#2D2D2D" }}>
+      <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
       
       {toast && (
-        <div style={{ position: "fixed", top: 20, left: "50%", transform: "translateX(-50%)", zIndex: 9999, background: toast.type === "success" ? "#10B981" : "#EF4444", color: "#fff", padding: "12px 24px", borderRadius: 16, fontWeight: 600, boxShadow: "0 8px 30px rgba(0,0,0,0.15)", animation: "slideDown 0.3s ease" }}>
-          {toast.msg}
+        <div style={{ position: "fixed", top: 20, left: "50%", transform: "translateX(-50%)", zIndex: 9999, background: toast.type === "success" ? "#FF3CAC" : "#EF4444", color: "#fff", padding: "12px 24px", borderRadius: 20, fontWeight: 700, boxShadow: "0 8px 30px rgba(255,60,172,0.3)", animation: "slideDown 0.3s ease", fontFamily: "'Nunito', sans-serif" }}>
+          ✨ {toast.msg}
         </div>
       )}
 
-      <header style={{ background: "linear-gradient(135deg, #FF1493 0%, #FF69B4 40%, #FF85C8 100%)", padding: "16px 20px", color: "#fff", position: "sticky", top: 0, zIndex: 100, boxShadow: "0 4px 20px rgba(255,20,147,0.3)" }}>
+      <header style={{ background: "linear-gradient(135deg, #FF3CAC 0%, #FF0080 50%, #E040FB 100%)", padding: "14px 20px", color: "#fff", position: "sticky", top: 0, zIndex: 100, boxShadow: "0 4px 24px rgba(255,0,128,0.35)" }}>
         <div style={{ maxWidth: 600, margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div>
-            <h1 style={{ fontFamily: "'Sora', sans-serif", fontSize: 24, fontWeight: 800, margin: 0, letterSpacing: -0.5 }}>✨ SparkleSpace</h1>
-            <p style={{ fontSize: 11, opacity: 0.9, margin: 0, fontWeight: 500 }}>
+            <h1 style={{ fontFamily: "'Nunito', sans-serif", fontSize: 22, fontWeight: 900, margin: 0, letterSpacing: -0.3 }}>✨ SparkleSpace</h1>
+            <p style={{ fontSize: 11, margin: 0, fontWeight: 500, color: "#FFD6E8" }}>
               by Thea • Organization Magic
-              {dbConnected && <span style={{ marginLeft: 6, fontSize: 9, background: "rgba(255,255,255,0.3)", padding: "1px 6px", borderRadius: 8 }}>{syncing ? "⏳ syncing..." : "☁️ cloud"}</span>}
+              {dbConnected && <span style={{ marginLeft: 6, fontSize: 9, background: "rgba(255,255,255,0.22)", padding: "2px 10px", borderRadius: 12, color: "#fff", fontWeight: 600, backdropFilter: "blur(4px)" }}>{syncing ? "⏳ syncing..." : "☁ cloud"}</span>}
             </p>
           </div>
-          <button onClick={() => { setShowNewJob(true); setCurrentView("jobs"); }} style={{ background: "rgba(255,255,255,0.25)", border: "2px solid rgba(255,255,255,0.5)", borderRadius: 14, padding: "8px 16px", color: "#fff", fontWeight: 700, fontSize: 14, cursor: "pointer", backdropFilter: "blur(10px)" }}>
+          <button onClick={() => { setShowNewJob(true); setCurrentView("jobs"); }} style={{ background: "#fff", border: "none", borderRadius: 20, padding: "9px 20px", color: "#FF0080", fontWeight: 800, fontSize: 13, cursor: "pointer", boxShadow: "0 4px 18px rgba(255,60,172,0.25)", fontFamily: "'Nunito', sans-serif", letterSpacing: 0.2 }}>
             + New Job
           </button>
         </div>
@@ -438,18 +438,19 @@ export default function SparkleSpaceApp() {
       <main style={{ maxWidth: 600, margin: "0 auto", padding: "16px 16px 100px" }}>
         {currentView === "dashboard" && <Dashboard data={data} setCurrentView={setCurrentView} openJob={openJob} setShowNewJob={setShowNewJob} />}
         {currentView === "jobs" && <JobsList data={data} openJob={openJob} showNewJob={showNewJob} setShowNewJob={setShowNewJob} addJob={addJob} updateJob={updateJob} settings={data.settings} showToast={showToast} />}
-        {currentView === "job-detail" && selectedJob && <JobDetail job={data.jobs.find(j => j.id === selectedJob)} updateJob={updateJob} settings={data.settings} showToast={showToast} setCurrentView={setCurrentView} />}
+        {currentView === "job-detail" && selectedJob && <JobDetail job={data.jobs.find(j => j.id === selectedJob)} allJobs={data.jobs} updateJob={updateJob} deleteJob={deleteJob} settings={data.settings} showToast={showToast} setCurrentView={setCurrentView} />}
         {currentView === "calendar" && <CalendarView data={data} openJob={openJob} />}
         {currentView === "analytics" && <Analytics data={data} />}
         {currentView === "settings" && <Settings settings={data.settings} updateSettings={updateSettings} showToast={showToast} dbConnected={dbConnected} setDbConnected={setDbConnected} forceSync={forceSync} syncing={syncing} />}
       </main>
 
-      <nav style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: "rgba(255,255,255,0.95)", backdropFilter: "blur(20px)", borderTop: "1px solid rgba(0,0,0,0.06)", padding: "8px 0 max(8px, env(safe-area-inset-bottom))", zIndex: 100 }}>
+      <nav style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: "rgba(255,255,255,0.97)", backdropFilter: "blur(20px)", borderTop: "1px solid rgba(255,60,172,0.08)", padding: "8px 0 max(8px, env(safe-area-inset-bottom))", zIndex: 100 }}>
         <div style={{ maxWidth: 600, margin: "0 auto", display: "flex", justifyContent: "space-around" }}>
           {navItems.map((item) => (
-            <button key={item.id} onClick={() => setCurrentView(item.id)} style={{ background: "none", border: "none", display: "flex", flexDirection: "column", alignItems: "center", gap: 2, cursor: "pointer", padding: "4px 12px", borderRadius: 12, transition: "all 0.2s", ...(currentView === item.id ? { background: "linear-gradient(135deg, #FFD6E8, #FFE4F0)", transform: "scale(1.05)" } : {}) }}>
-              <span style={{ fontSize: 20 }}>{item.emoji}</span>
-              <span style={{ fontSize: 10, fontWeight: currentView === item.id ? 700 : 500, color: currentView === item.id ? "#FF69B4" : "#999" }}>{item.label}</span>
+            <button key={item.id} onClick={() => setCurrentView(item.id)} style={{ background: "none", border: "none", display: "flex", flexDirection: "column", alignItems: "center", gap: 2, cursor: "pointer", padding: "6px 14px", borderRadius: 16, transition: "all 0.2s", position: "relative", ...(currentView === item.id ? { transform: "scale(1.08)" } : {}) }}>
+              {currentView === item.id && <div style={{ position: "absolute", top: -2, left: "50%", transform: "translateX(-50%)", width: 42, height: 42, borderRadius: "50%", background: "radial-gradient(circle, rgba(255,60,172,0.15) 0%, transparent 70%)", animation: "navGlow 2s ease-in-out infinite" }} />}
+              <span style={{ fontSize: 20, position: "relative", zIndex: 1 }}>{item.emoji}</span>
+              <span style={{ fontSize: 10, fontWeight: currentView === item.id ? 700 : 500, color: currentView === item.id ? "#FF0080" : "#999", fontFamily: "'Nunito', sans-serif", position: "relative", zIndex: 1 }}>{item.label}</span>
             </button>
           ))}
         </div>
@@ -458,12 +459,24 @@ export default function SparkleSpaceApp() {
       <style>{`
         @keyframes slideDown { from { opacity: 0; transform: translate(-50%, -20px); } to { opacity: 1; transform: translate(-50%, 0); } }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes navGlow { 0%, 100% { opacity: 0.6; transform: translateX(-50%) scale(1); } 50% { opacity: 1; transform: translateX(-50%) scale(1.15); } }
+        @keyframes shimmer { 0% { background-position: -200% center; } 100% { background-position: 200% center; } }
+        @keyframes sparkle { 0%, 100% { opacity: 0.3; transform: scale(0.8) rotate(0deg); } 50% { opacity: 1; transform: scale(1.2) rotate(15deg); } }
+        @keyframes popIn { from { opacity: 0; transform: scale(0.95) translateY(16px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+        @keyframes floatUp { 0% { opacity: 0; transform: translateY(24px); } 100% { opacity: 1; transform: translateY(0); } }
+        @keyframes confettiBurst { 0% { opacity: 1; transform: scale(0); } 50% { opacity: 1; transform: scale(1.3); } 100% { opacity: 0; transform: scale(0.8) translateY(-20px); } }
+        @keyframes pulseGlow { 0%, 100% { box-shadow: 0 0 0 0 rgba(255,60,172,0.2); } 50% { box-shadow: 0 0 0 8px rgba(255,60,172,0); } }
+        @keyframes gentleBounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
         * { box-sizing: border-box; }
         input, textarea, select { font-family: 'Poppins', sans-serif; }
         button { transition: all 0.15s ease; }
-        button:active { transform: scale(0.97); }
+        button:active { transform: scale(1.05) !important; }
         ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-thumb { background: #ddd; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #FFB3D1; border-radius: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        @media (prefers-reduced-motion: reduce) {
+          * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+        }
       `}</style>
     </div>
   );
@@ -472,7 +485,7 @@ export default function SparkleSpaceApp() {
 // ─── Reusable UI Components ───
 function Card({ children, style = {}, onClick }) {
   return (
-    <div onClick={onClick} style={{ background: "#fff", borderRadius: 20, padding: 20, boxShadow: "0 2px 12px rgba(0,0,0,0.04)", border: "1px solid rgba(0,0,0,0.04)", animation: "fadeIn 0.3s ease", cursor: onClick ? "pointer" : "default", transition: "all 0.2s", ...style }} onMouseEnter={(e) => { if (onClick) e.currentTarget.style.transform = "translateY(-2px)"; }} onMouseLeave={(e) => { if (onClick) e.currentTarget.style.transform = ""; }}>
+    <div onClick={onClick} style={{ background: "#fff", borderRadius: 22, padding: 20, boxShadow: "0 4px 24px rgba(255,60,172,0.08), 0 1px 4px rgba(0,0,0,0.04)", border: "none", animation: "popIn 0.5s cubic-bezier(0.22, 1, 0.36, 1)", cursor: onClick ? "pointer" : "default", transition: "all 0.25s cubic-bezier(0.22, 1, 0.36, 1)", ...style }} onMouseEnter={(e) => { if (onClick) { e.currentTarget.style.transform = "translateY(-3px)"; e.currentTarget.style.boxShadow = "0 8px 30px rgba(255,60,172,0.15), 0 2px 8px rgba(0,0,0,0.06)"; } }} onMouseLeave={(e) => { if (onClick) { e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = ""; } }}>
       {children}
     </div>
   );
@@ -481,8 +494,8 @@ function Card({ children, style = {}, onClick }) {
 function Input({ label, ...props }) {
   return (
     <div style={{ marginBottom: 14 }}>
-      {label && <label style={{ fontSize: 12, fontWeight: 600, color: "#666", marginBottom: 4, display: "block" }}>{label}</label>}
-      <input {...props} style={{ width: "100%", padding: "10px 14px", borderRadius: 12, border: "2px solid #FFD6E8", fontSize: 14, outline: "none", transition: "border-color 0.2s", background: "#FFF5F8", ...props.style }} onFocus={(e) => e.target.style.borderColor = "#FF69B4"} onBlur={(e) => e.target.style.borderColor = "#FFD6E8"} />
+      {label && <label style={{ fontSize: 12, fontWeight: 600, color: "#6B6B6B", marginBottom: 4, display: "block" }}>{label}</label>}
+      <input {...props} style={{ width: "100%", padding: "10px 14px", borderRadius: 12, border: "2px solid #FFB3D1", fontSize: 14, outline: "none", transition: "border-color 0.2s", background: "#FFF5F9", ...props.style }} onFocus={(e) => e.target.style.borderColor = "#FF3CAC"} onBlur={(e) => e.target.style.borderColor = "#FFB3D1"} />
     </div>
   );
 }
@@ -490,8 +503,8 @@ function Input({ label, ...props }) {
 function TextArea({ label, ...props }) {
   return (
     <div style={{ marginBottom: 14 }}>
-      {label && <label style={{ fontSize: 12, fontWeight: 600, color: "#666", marginBottom: 4, display: "block" }}>{label}</label>}
-      <textarea {...props} style={{ width: "100%", padding: "10px 14px", borderRadius: 12, border: "2px solid #FFD6E8", fontSize: 14, outline: "none", minHeight: 80, resize: "vertical", background: "#FFF5F8", ...props.style }} onFocus={(e) => e.target.style.borderColor = "#FF69B4"} onBlur={(e) => e.target.style.borderColor = "#FFD6E8"} />
+      {label && <label style={{ fontSize: 12, fontWeight: 600, color: "#6B6B6B", marginBottom: 4, display: "block" }}>{label}</label>}
+      <textarea {...props} style={{ width: "100%", padding: "10px 14px", borderRadius: 12, border: "2px solid #FFB3D1", fontSize: 14, outline: "none", minHeight: 80, resize: "vertical", background: "#FFF5F9", ...props.style }} onFocus={(e) => e.target.style.borderColor = "#FF3CAC"} onBlur={(e) => e.target.style.borderColor = "#FFB3D1"} />
     </div>
   );
 }
@@ -499,8 +512,8 @@ function TextArea({ label, ...props }) {
 function Select({ label, options, ...props }) {
   return (
     <div style={{ marginBottom: 14 }}>
-      {label && <label style={{ fontSize: 12, fontWeight: 600, color: "#666", marginBottom: 4, display: "block" }}>{label}</label>}
-      <select {...props} style={{ width: "100%", padding: "10px 14px", borderRadius: 12, border: "2px solid #FFD6E8", fontSize: 14, outline: "none", background: "#FFF5F8", cursor: "pointer", ...props.style }}>
+      {label && <label style={{ fontSize: 12, fontWeight: 600, color: "#6B6B6B", marginBottom: 4, display: "block" }}>{label}</label>}
+      <select {...props} style={{ width: "100%", padding: "10px 14px", borderRadius: 12, border: "2px solid #FFB3D1", fontSize: 14, outline: "none", background: "#FFF5F9", cursor: "pointer", ...props.style }}>
         {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
       </select>
     </div>
@@ -509,13 +522,13 @@ function Select({ label, options, ...props }) {
 
 function GradientButton({ children, onClick, style = {}, variant = "primary" }) {
   const styles = {
-    primary: { background: "linear-gradient(135deg, #FF1493, #FF69B4)", color: "#fff" },
-    secondary: { background: "linear-gradient(135deg, #FFE4F0, #FFD6E8)", color: "#B5005A" },
-    success: { background: "linear-gradient(135deg, #34D399, #60A5FA)", color: "#fff" },
-    danger: { background: "linear-gradient(135deg, #FB7185, #F43F5E)", color: "#fff" },
+    primary: { background: "linear-gradient(135deg, #FF3CAC, #FF0080)", color: "#fff", boxShadow: "0 4px 18px rgba(255,60,172,0.3)" },
+    secondary: { background: "linear-gradient(135deg, #FFD6E8, #E8C5F5)", color: "#FF0080", boxShadow: "0 4px 12px rgba(232,197,245,0.3)" },
+    success: { background: "linear-gradient(135deg, #34D399, #10B981)", color: "#fff", boxShadow: "0 4px 12px rgba(16,185,129,0.3)" },
+    danger: { background: "linear-gradient(135deg, #FB7185, #F43F5E)", color: "#fff", boxShadow: "0 4px 12px rgba(244,63,94,0.3)" },
   };
   return (
-    <button onClick={onClick} style={{ border: "none", borderRadius: 14, padding: "12px 24px", fontWeight: 700, fontSize: 14, cursor: "pointer", width: "100%", fontFamily: "'Poppins', sans-serif", ...styles[variant], ...style }}>
+    <button onClick={onClick} style={{ border: "none", borderRadius: 20, padding: "12px 24px", fontWeight: 700, fontSize: 14, cursor: "pointer", width: "100%", fontFamily: "'Nunito', sans-serif", letterSpacing: 0.2, ...styles[variant], ...style }}>
       {children}
     </button>
   );
@@ -523,9 +536,13 @@ function GradientButton({ children, onClick, style = {}, variant = "primary" }) 
 
 function StatusBadge({ status }) {
   const c = STATUS_COLORS[status] || STATUS_COLORS.assessment;
+  const isInvoiced = status === "invoiced";
+  const isPaid = status === "paid";
+  const isInProgress = status === "in-progress";
+  const hasGradient = c.bg.includes("gradient");
   return (
-    <span style={{ background: c.bg, color: c.text, border: `1px solid ${c.border}`, padding: "3px 10px", borderRadius: 20, fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5 }}>
-      {status}
+    <span style={{ background: isInvoiced ? "linear-gradient(90deg, #E8C5F5, #FFB3D1, #E8C5F5)" : c.bg, backgroundSize: isInvoiced ? "200% auto" : undefined, animation: isInvoiced ? "shimmer 3s linear infinite" : undefined, color: c.text, padding: "4px 12px", borderRadius: 20, fontSize: 10, fontWeight: 800, textTransform: "uppercase", letterSpacing: 0.8, fontFamily: "'Nunito', sans-serif", boxShadow: isPaid ? "0 2px 8px rgba(52,211,153,0.3)" : isInProgress ? "0 2px 8px rgba(255,60,172,0.3)" : "none" }}>
+      {isPaid && "✨ "}{status.replace(/-/g, " ")}
     </span>
   );
 }
@@ -668,7 +685,7 @@ function PhotoUpload({ photos = [], onPhotosChange, label, jobName, spaceType, p
 
   return (
     <div style={{ marginBottom: 14 }}>
-      <label style={{ fontSize: 12, fontWeight: 600, color: "#666", marginBottom: 8, display: "block" }}>{label}</label>
+      <label style={{ fontSize: 12, fontWeight: 600, color: "#6B6B6B", marginBottom: 8, display: "block" }}>{label}</label>
       
       {/* Photo grid */}
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 8 }}>
@@ -683,11 +700,11 @@ function PhotoUpload({ photos = [], onPhotosChange, label, jobName, spaceType, p
 
       {/* Two action buttons: Camera + Gallery */}
       <div style={{ display: "flex", gap: 8 }}>
-        <button onClick={openCamera} style={{ flex: 1, padding: "12px 8px", borderRadius: 14, border: "2px dashed #FF69B4", background: "linear-gradient(135deg, #FFF0F5, #FFE4F0)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: 11, color: "#FF1493", fontWeight: 700, gap: 4, fontFamily: "Sora, sans-serif", transition: "all 0.2s" }}>
+        <button onClick={openCamera} style={{ flex: 1, padding: "12px 8px", borderRadius: 14, border: "2px dashed #FF0080", background: "linear-gradient(135deg, #FFF5F9, #FFE0F0)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: 11, color: "#FF3CAC", fontWeight: 700, gap: 4, fontFamily: "Nunito, sans-serif", transition: "all 0.2s" }}>
           <span style={{ fontSize: 26 }}>📷</span>
           Take Photo
         </button>
-        <button onClick={() => galleryRef.current?.click()} style={{ flex: 1, padding: "12px 8px", borderRadius: 14, border: "2px dashed #FFB3D9", background: "linear-gradient(135deg, #FFF5FA, #FFF0F5)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: 11, color: "#D6006E", fontWeight: 700, gap: 4, fontFamily: "Sora, sans-serif", transition: "all 0.2s" }}>
+        <button onClick={() => galleryRef.current?.click()} style={{ flex: 1, padding: "12px 8px", borderRadius: 14, border: "2px dashed #FFB3D9", background: "linear-gradient(135deg, #FFF5FA, #FFF5F9)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: 11, color: "#FF0080", fontWeight: 700, gap: 4, fontFamily: "Nunito, sans-serif", transition: "all 0.2s" }}>
           <span style={{ fontSize: 26 }}>🖼️</span>
           From Gallery
         </button>
@@ -700,9 +717,9 @@ function PhotoUpload({ photos = [], onPhotosChange, label, jobName, spaceType, p
       {/* GDrive info */}
       {hasGDrive && photos.length > 0 && (
         <div style={{ marginTop: 6, fontSize: 10, color: "#E91E8B" }}>
-          📁 Upload photos to <a href={gdriveConfig.folderUrl} target="_blank" rel="noopener noreferrer" style={{ color: "#D6006E", fontWeight: 600 }}>Google Drive folder</a> with these names for easy lookup
+          📁 Upload photos to <a href={gdriveConfig.folderUrl} target="_blank" rel="noopener noreferrer" style={{ color: "#FF0080", fontWeight: 600 }}>Google Drive folder</a> with these names for easy lookup
           {photos.filter(p => p.descriptiveFilename).map(p => (
-            <div key={p.id} style={{ fontFamily: "monospace", fontSize: 9, color: "#666", marginTop: 2, wordBreak: "break-all" }}>📎 {p.descriptiveFilename}</div>
+            <div key={p.id} style={{ fontFamily: "monospace", fontSize: 9, color: "#6B6B6B", marginTop: 2, wordBreak: "break-all" }}>📎 {p.descriptiveFilename}</div>
           ))}
         </div>
       )}
@@ -715,8 +732,8 @@ function PhotoUpload({ photos = [], onPhotosChange, label, jobName, spaceType, p
         <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 10000, background: "#000", display: "flex", flexDirection: "column" }}>
           {/* Top bar */}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 16px", background: "rgba(0,0,0,0.7)", zIndex: 2 }}>
-            <button onClick={stopCamera} style={{ background: "rgba(255,255,255,0.15)", border: "none", color: "#fff", fontSize: 14, fontWeight: 700, padding: "8px 16px", borderRadius: 20, cursor: "pointer", fontFamily: "Sora, sans-serif", backdropFilter: "blur(8px)" }}>✕ Close</button>
-            <div style={{ color: "#FF69B4", fontSize: 13, fontWeight: 700, fontFamily: "Sora, sans-serif", textShadow: "0 1px 4px rgba(0,0,0,0.5)" }}>
+            <button onClick={stopCamera} style={{ background: "rgba(255,255,255,0.15)", border: "none", color: "#fff", fontSize: 14, fontWeight: 700, padding: "8px 16px", borderRadius: 20, cursor: "pointer", fontFamily: "Nunito, sans-serif", backdropFilter: "blur(8px)" }}>✕ Close</button>
+            <div style={{ color: "#FF0080", fontSize: 13, fontWeight: 700, fontFamily: "Nunito, sans-serif", textShadow: "0 1px 4px rgba(0,0,0,0.5)" }}>
               📸 {photoType === "before" ? "Before Photo" : photoType === "after" ? "After Photo" : photoType === "assessment" ? "Assessment" : "Snap a Pic"}
             </div>
             <button onClick={flipCamera} style={{ background: "rgba(255,255,255,0.15)", border: "none", color: "#fff", fontSize: 18, padding: "8px 14px", borderRadius: 20, cursor: "pointer", backdropFilter: "blur(8px)" }}>🔄</button>
@@ -725,10 +742,10 @@ function PhotoUpload({ photos = [], onPhotosChange, label, jobName, spaceType, p
           {/* Camera feed / Preview */}
           <div style={{ flex: 1, position: "relative", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
             {cameraError && cameraError !== "camera" ? (
-              <div style={{ color: "#FF69B4", textAlign: "center", padding: 32, fontFamily: "Sora, sans-serif" }}>
+              <div style={{ color: "#FF0080", textAlign: "center", padding: 32, fontFamily: "Nunito, sans-serif" }}>
                 <div style={{ fontSize: 48, marginBottom: 16 }}>😿</div>
                 <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>{cameraError}</div>
-                <button onClick={stopCamera} style={{ background: "#FF1493", color: "#fff", border: "none", padding: "10px 24px", borderRadius: 20, fontWeight: 700, cursor: "pointer", fontFamily: "Sora, sans-serif" }}>Go Back</button>
+                <button onClick={stopCamera} style={{ background: "#FF3CAC", color: "#fff", border: "none", padding: "10px 24px", borderRadius: 20, fontWeight: 700, cursor: "pointer", fontFamily: "Nunito, sans-serif" }}>Go Back</button>
               </div>
             ) : capturedPreview ? (
               <img src={capturedPreview} alt="Preview" style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }} />
@@ -743,7 +760,7 @@ function PhotoUpload({ photos = [], onPhotosChange, label, jobName, spaceType, p
 
             {/* Photo count badge */}
             {photos.length > 0 && (
-              <div style={{ position: "absolute", top: 12, right: 12, background: "linear-gradient(135deg, #FF1493, #FF69B4)", color: "#fff", borderRadius: 16, padding: "4px 12px", fontSize: 12, fontWeight: 700, fontFamily: "Sora, sans-serif", boxShadow: "0 2px 8px rgba(255,20,147,0.4)" }}>
+              <div style={{ position: "absolute", top: 12, right: 12, background: "linear-gradient(135deg, #FF3CAC, #FF0080)", color: "#fff", borderRadius: 16, padding: "4px 12px", fontSize: 12, fontWeight: 700, fontFamily: "Nunito, sans-serif", boxShadow: "0 2px 8px rgba(255,20,147,0.4)" }}>
                 {photos.length} pic{photos.length !== 1 ? "s" : ""} ✨
               </div>
             )}
@@ -753,18 +770,18 @@ function PhotoUpload({ photos = [], onPhotosChange, label, jobName, spaceType, p
           <div style={{ padding: "16px 24px 32px", background: "rgba(0,0,0,0.7)", display: "flex", justifyContent: "center", alignItems: "center", gap: 24 }}>
             {capturedPreview ? (
               <>
-                <button onClick={retakePhoto} style={{ background: "rgba(255,255,255,0.15)", border: "2px solid rgba(255,255,255,0.3)", color: "#fff", fontSize: 14, fontWeight: 700, padding: "14px 28px", borderRadius: 28, cursor: "pointer", fontFamily: "Sora, sans-serif", backdropFilter: "blur(8px)" }}>
+                <button onClick={retakePhoto} style={{ background: "rgba(255,255,255,0.15)", border: "2px solid rgba(255,255,255,0.3)", color: "#fff", fontSize: 14, fontWeight: 700, padding: "14px 28px", borderRadius: 28, cursor: "pointer", fontFamily: "Nunito, sans-serif", backdropFilter: "blur(8px)" }}>
                   🔄 Retake
                 </button>
-                <button onClick={acceptPhoto} style={{ background: "linear-gradient(135deg, #FF1493, #FF69B4)", border: "none", color: "#fff", fontSize: 14, fontWeight: 700, padding: "14px 28px", borderRadius: 28, cursor: "pointer", fontFamily: "Sora, sans-serif", boxShadow: "0 4px 16px rgba(255,20,147,0.5)" }}>
+                <button onClick={acceptPhoto} style={{ background: "linear-gradient(135deg, #FF3CAC, #FF0080)", border: "none", color: "#fff", fontSize: 14, fontWeight: 700, padding: "14px 28px", borderRadius: 28, cursor: "pointer", fontFamily: "Nunito, sans-serif", boxShadow: "0 4px 16px rgba(255,20,147,0.5)" }}>
                   ✅ Use This!
                 </button>
               </>
             ) : (
               <>
                 {/* Shutter button */}
-                <button onClick={capturePhoto} style={{ width: 72, height: 72, borderRadius: "50%", border: "4px solid #FF69B4", background: "radial-gradient(circle, #fff 60%, #FFE4F0 100%)", cursor: "pointer", boxShadow: "0 0 20px rgba(255,105,180,0.5), inset 0 0 8px rgba(255,20,147,0.2)", display: "flex", alignItems: "center", justifyContent: "center", transition: "transform 0.1s" }}>
-                  <div style={{ width: 56, height: 56, borderRadius: "50%", background: "linear-gradient(135deg, #FF1493, #FF69B4)", boxShadow: "inset 0 2px 4px rgba(255,255,255,0.3)" }} />
+                <button onClick={capturePhoto} style={{ width: 72, height: 72, borderRadius: "50%", border: "4px solid #FF0080", background: "radial-gradient(circle, #fff 60%, #FFE0F0 100%)", cursor: "pointer", boxShadow: "0 0 20px rgba(255,105,180,0.5), inset 0 0 8px rgba(255,20,147,0.2)", display: "flex", alignItems: "center", justifyContent: "center", transition: "transform 0.1s" }}>
+                  <div style={{ width: 56, height: 56, borderRadius: "50%", background: "linear-gradient(135deg, #FF3CAC, #FF0080)", boxShadow: "inset 0 2px 4px rgba(255,255,255,0.3)" }} />
                 </button>
               </>
             )}
@@ -802,22 +819,22 @@ function SpaceEditorCard({ space, index, total, onUpdate, onRemove, collapsed, o
   };
 
   return (
-    <div style={{ background: "#fff", border: "2px solid #FFD6E8", borderRadius: 16, marginBottom: 10, overflow: "hidden", animation: "fadeIn 0.3s ease" }}>
+    <div style={{ background: "#fff", border: "2px solid #FFB3D1", borderRadius: 16, marginBottom: 10, overflow: "hidden", animation: "fadeIn 0.3s ease" }}>
       {/* Collapsed header — always visible */}
-      <div onClick={onToggle} style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 14px", cursor: "pointer", background: collapsed ? "#FFF5F8" : "linear-gradient(135deg, #FFF0F5, #FFE4F0)" }}>
+      <div onClick={onToggle} style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 14px", cursor: "pointer", background: collapsed ? "#FFF5F9" : "linear-gradient(135deg, #FFF5F9, #FFE0F0)" }}>
         <span style={{ fontSize: 22 }}>{emoji}</span>
         <div style={{ flex: 1 }}>
           <div style={{ fontWeight: 700, fontSize: 13 }}>
             {space.spaceType}
-            <span style={{ fontWeight: 500, color: "#FF1493", marginLeft: 6, fontSize: 11 }}>
+            <span style={{ fontWeight: 500, color: "#FF3CAC", marginLeft: 6, fontSize: 11 }}>
               {space.estimatedHours || hours}h
             </span>
           </div>
-          <div style={{ fontSize: 11, color: "#999" }}>
+          <div style={{ fontSize: 11, color: "#6B6B6B" }}>
             {space.size} • {space.clutterLevel} clutter
           </div>
         </div>
-        <span style={{ fontSize: 11, color: "#FF69B4", fontWeight: 700 }}>{collapsed ? "▼" : "▲"}</span>
+        <span style={{ fontSize: 11, color: "#FF0080", fontWeight: 700 }}>{collapsed ? "▼" : "▲"}</span>
         {total > 1 && (
           <button onClick={(e) => { e.stopPropagation(); onRemove(); }} style={{ background: "#FFF1F2", border: "1px solid #FECDD3", borderRadius: 8, padding: "4px 8px", fontSize: 11, color: "#E11D48", fontWeight: 700, cursor: "pointer" }}>
             ✕
@@ -828,29 +845,29 @@ function SpaceEditorCard({ space, index, total, onUpdate, onRemove, collapsed, o
       {/* Expanded content */}
       {!collapsed && (
         <div style={{ padding: "0 14px 14px" }}>
-          <label style={{ fontSize: 11, fontWeight: 600, color: "#888", marginBottom: 6, display: "block", marginTop: 10 }}>Space Type</label>
+          <label style={{ fontSize: 11, fontWeight: 600, color: "#6B6B6B", marginBottom: 6, display: "block", marginTop: 10 }}>Space Type</label>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, marginBottom: 12 }}>
             {SPACE_TYPES.map((t) => (
-              <button key={t.label} onClick={() => updateFields({ spaceType: t.label, _manualOverride: false })} style={{ padding: "8px 6px", borderRadius: 10, border: space.spaceType === t.label ? "2px solid #FF69B4" : "1.5px solid #E5E7EB", background: space.spaceType === t.label ? "#FFE4F0" : "#fff", cursor: "pointer", fontSize: 11, fontWeight: 600, textAlign: "center" }}>
+              <button key={t.label} onClick={() => updateFields({ spaceType: t.label, _manualOverride: false })} style={{ padding: "8px 6px", borderRadius: 10, border: space.spaceType === t.label ? "2px solid #FF0080" : "1.5px solid #E5E7EB", background: space.spaceType === t.label ? "#FFE0F0" : "#fff", cursor: "pointer", fontSize: 11, fontWeight: 600, textAlign: "center" }}>
                 <span style={{ fontSize: 16, display: "block" }}>{t.emoji}</span>
                 {t.label}
               </button>
             ))}
           </div>
 
-          <label style={{ fontSize: 11, fontWeight: 600, color: "#888", marginBottom: 6, display: "block" }}>Size</label>
+          <label style={{ fontSize: 11, fontWeight: 600, color: "#6B6B6B", marginBottom: 6, display: "block" }}>Size</label>
           <div style={{ display: "flex", gap: 5, marginBottom: 12 }}>
             {Object.keys(SIZE_MULTIPLIERS).map((s) => (
-              <button key={s} onClick={() => updateFields({ size: s, _manualOverride: false })} style={{ flex: 1, padding: "7px 3px", borderRadius: 8, border: space.size === s ? "2px solid #FF69B4" : "1.5px solid #E5E7EB", background: space.size === s ? "#FFE4F0" : "#fff", cursor: "pointer", fontSize: 10, fontWeight: 600, textTransform: "capitalize" }}>
+              <button key={s} onClick={() => updateFields({ size: s, _manualOverride: false })} style={{ flex: 1, padding: "7px 3px", borderRadius: 8, border: space.size === s ? "2px solid #FF0080" : "1.5px solid #E5E7EB", background: space.size === s ? "#FFE0F0" : "#fff", cursor: "pointer", fontSize: 10, fontWeight: 600, textTransform: "capitalize" }}>
                 {s === "xlarge" ? "XL" : s}
               </button>
             ))}
           </div>
 
-          <label style={{ fontSize: 11, fontWeight: 600, color: "#888", marginBottom: 6, display: "block" }}>Clutter Level</label>
+          <label style={{ fontSize: 11, fontWeight: 600, color: "#6B6B6B", marginBottom: 6, display: "block" }}>Clutter Level</label>
           <div style={{ display: "flex", gap: 5, marginBottom: 12 }}>
             {Object.keys(CLUTTER_MULTIPLIERS).map((c) => (
-              <button key={c} onClick={() => updateFields({ clutterLevel: c, _manualOverride: false })} style={{ flex: 1, padding: "7px 3px", borderRadius: 8, border: space.clutterLevel === c ? "2px solid #FF69B4" : "1.5px solid #E5E7EB", background: space.clutterLevel === c ? "#FFE4F0" : "#fff", cursor: "pointer", fontSize: 10, fontWeight: 600, textTransform: "capitalize" }}>
+              <button key={c} onClick={() => updateFields({ clutterLevel: c, _manualOverride: false })} style={{ flex: 1, padding: "7px 3px", borderRadius: 8, border: space.clutterLevel === c ? "2px solid #FF0080" : "1.5px solid #E5E7EB", background: space.clutterLevel === c ? "#FFE0F0" : "#fff", cursor: "pointer", fontSize: 10, fontWeight: 600, textTransform: "capitalize" }}>
                 {c}
               </button>
             ))}
@@ -861,13 +878,13 @@ function SpaceEditorCard({ space, index, total, onUpdate, onRemove, collapsed, o
           <PhotoUpload label="📸 Before Photos" photos={space.beforePhotos || []} onPhotosChange={(p) => updateField("beforePhotos", p)} jobName={jobName} spaceType={space.spaceType} photoType="before" />
 
           {/* Per-space estimate with override */}
-          <div style={{ background: "linear-gradient(135deg, #FFF0F5, #FFE4F0)", borderRadius: 12, padding: 10, marginTop: 4 }}>
+          <div style={{ background: "linear-gradient(135deg, #FFF5F9, #FFE0F0)", borderRadius: 16, padding: 12, marginTop: 4 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 12 }}>
-              <span style={{ fontWeight: 600, color: "#888" }}>🤖 Auto: {hours}h</span>
+              <span style={{ fontWeight: 600, color: "#6B6B6B" }}>🤖 Auto: {hours}h</span>
               <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                <span style={{ fontSize: 11, color: "#888" }}>Override:</span>
+                <span style={{ fontSize: 11, color: "#6B6B6B" }}>Override:</span>
                 <input type="number" step="0.5" min="0" value={space.estimatedHours || hours} onChange={(e) => updateField("estimatedHours", parseFloat(e.target.value) || 0)} style={{ width: 60, padding: "4px 8px", borderRadius: 8, border: "1.5px solid #FFB3D9", fontSize: 12, textAlign: "center", outline: "none", background: "#fff" }} />
-                <span style={{ fontSize: 11, color: "#888" }}>h</span>
+                <span style={{ fontSize: 11, color: "#6B6B6B" }}>h</span>
               </div>
             </div>
           </div>
@@ -900,13 +917,13 @@ function ScheduleDaysEditor({ scheduleDays, totalHours, onChange }) {
   return (
     <div style={{ marginBottom: 8 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-        <label style={{ fontSize: 12, fontWeight: 600, color: "#666" }}>📅 Schedule Days</label>
-        <span style={{ fontSize: 11, color: "#FF1493", fontWeight: 700 }}>{scheduledH}h of {totalHours}h</span>
+        <label style={{ fontSize: 12, fontWeight: 600, color: "#6B6B6B" }}>📅 Schedule Days</label>
+        <span style={{ fontSize: 11, color: "#FF3CAC", fontWeight: 700 }}>{scheduledH}h of {totalHours}h</span>
       </div>
       
       <div style={{ marginBottom: 10 }}>
-        <div style={{ height: 8, borderRadius: 4, background: "#FFE4F0", overflow: "hidden" }}>
-          <div style={{ height: "100%", borderRadius: 4, background: pct >= 100 ? "linear-gradient(90deg, #34D399, #60A5FA)" : "linear-gradient(90deg, #FF1493, #FF69B4)", width: `${pct}%`, transition: "width 0.4s" }} />
+        <div style={{ height: 8, borderRadius: 4, background: "#FFE0F0", overflow: "hidden" }}>
+          <div style={{ height: "100%", borderRadius: 4, background: pct >= 100 ? "linear-gradient(90deg, #34D399, #60A5FA)" : "linear-gradient(90deg, #FF3CAC, #FF0080)", width: `${pct}%`, transition: "width 0.4s" }} />
         </div>
         <div style={{ fontSize: 11, color: remaining > 0 ? "#E11D48" : "#059669", fontWeight: 600, marginTop: 3 }}>
           {remaining > 0 ? `${remaining}h still needs scheduling` : "✅ All hours scheduled!"}
@@ -914,36 +931,36 @@ function ScheduleDaysEditor({ scheduleDays, totalHours, onChange }) {
       </div>
 
       {scheduleDays.map((day, index) => (
-        <div key={day.id} style={{ background: "#FFF5F8", border: "1.5px solid #FFD6E8", borderRadius: 14, padding: 12, marginBottom: 8, animation: "fadeIn 0.2s ease" }}>
+        <div key={day.id} style={{ background: "#FFF5F9", border: "1.5px solid #FFB3D1", borderRadius: 14, padding: 12, marginBottom: 8, animation: "fadeIn 0.2s ease" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-            <span style={{ fontSize: 12, fontWeight: 700, color: "#D6006E" }}>Day {index + 1} {day.date ? `• ${formatDate(day.date)}` : ""}</span>
+            <span style={{ fontSize: 12, fontWeight: 700, color: "#FF0080" }}>Day {index + 1} {day.date ? `• ${formatDate(day.date)}` : ""}</span>
             <button onClick={() => removeDay(index)} style={{ background: "#FFF1F2", border: "1px solid #FECDD3", borderRadius: 8, padding: "3px 8px", fontSize: 11, color: "#E11D48", fontWeight: 700, cursor: "pointer" }}>✕</button>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
             <div>
-              <label style={{ fontSize: 10, fontWeight: 600, color: "#999", display: "block", marginBottom: 3 }}>Date</label>
-              <input type="date" value={day.date} onChange={(e) => updateDay(index, { date: e.target.value })} style={{ width: "100%", padding: "8px 10px", borderRadius: 10, border: "1.5px solid #FFD6E8", fontSize: 13, outline: "none", background: "#fff" }} />
+              <label style={{ fontSize: 10, fontWeight: 600, color: "#6B6B6B", display: "block", marginBottom: 3 }}>Date</label>
+              <input type="date" value={day.date} onChange={(e) => updateDay(index, { date: e.target.value })} style={{ width: "100%", padding: "8px 10px", borderRadius: 10, border: "1.5px solid #FFB3D1", fontSize: 13, outline: "none", background: "#fff" }} />
             </div>
             <div>
-              <label style={{ fontSize: 10, fontWeight: 600, color: "#999", display: "block", marginBottom: 3 }}>Start Time</label>
-              <input type="time" value={day.startTime} onChange={(e) => updateDay(index, { startTime: e.target.value })} style={{ width: "100%", padding: "8px 10px", borderRadius: 10, border: "1.5px solid #FFD6E8", fontSize: 13, outline: "none", background: "#fff" }} />
+              <label style={{ fontSize: 10, fontWeight: 600, color: "#6B6B6B", display: "block", marginBottom: 3 }}>Start Time</label>
+              <input type="time" value={day.startTime} onChange={(e) => updateDay(index, { startTime: e.target.value })} style={{ width: "100%", padding: "8px 10px", borderRadius: 10, border: "1.5px solid #FFB3D1", fontSize: 13, outline: "none", background: "#fff" }} />
             </div>
           </div>
           <div style={{ marginTop: 8 }}>
-            <label style={{ fontSize: 10, fontWeight: 600, color: "#999", display: "block", marginBottom: 3 }}>Hours Thea will work this day</label>
+            <label style={{ fontSize: 10, fontWeight: 600, color: "#6B6B6B", display: "block", marginBottom: 3 }}>Hours Thea will work this day</label>
             <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
               {[1, 1.5, 2, 3, 4, 5, 6, 8].map(h => (
-                <button key={h} onClick={() => updateDay(index, { hours: h })} style={{ padding: "5px 10px", borderRadius: 8, border: day.hours === h ? "2px solid #FF69B4" : "1.5px solid #E5E7EB", background: day.hours === h ? "#FFE4F0" : "#fff", cursor: "pointer", fontSize: 11, fontWeight: 600, color: day.hours === h ? "#D6006E" : "#666" }}>
+                <button key={h} onClick={() => updateDay(index, { hours: h })} style={{ padding: "5px 10px", borderRadius: 8, border: day.hours === h ? "2px solid #FF0080" : "1.5px solid #E5E7EB", background: day.hours === h ? "#FFE0F0" : "#fff", cursor: "pointer", fontSize: 11, fontWeight: 600, color: day.hours === h ? "#FF0080" : "#666" }}>
                   {h}h
                 </button>
               ))}
             </div>
-            <input type="number" step="0.5" min="0.5" max="12" placeholder="Custom hours" value={day.hours || ""} onChange={(e) => updateDay(index, { hours: parseFloat(e.target.value) || 0 })} style={{ width: "100%", padding: "8px 10px", borderRadius: 10, border: "1.5px solid #FFD6E8", fontSize: 12, outline: "none", background: "#fff", marginTop: 6 }} />
+            <input type="number" step="0.5" min="0.5" max="12" placeholder="Custom hours" value={day.hours || ""} onChange={(e) => updateDay(index, { hours: parseFloat(e.target.value) || 0 })} style={{ width: "100%", padding: "8px 10px", borderRadius: 10, border: "1.5px solid #FFB3D1", fontSize: 12, outline: "none", background: "#fff", marginTop: 6 }} />
           </div>
         </div>
       ))}
 
-      <button onClick={addDay} style={{ width: "100%", padding: "11px", borderRadius: 12, border: "2px dashed #FF69B4", background: "linear-gradient(135deg, #FFF0F5, #FFE4F0)", cursor: "pointer", fontSize: 13, fontWeight: 700, color: "#D6006E", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+      <button onClick={addDay} style={{ width: "100%", padding: "11px", borderRadius: 12, border: "2px dashed #FF0080", background: "linear-gradient(135deg, #FFF5F9, #FFE0F0)", cursor: "pointer", fontSize: 13, fontWeight: 700, color: "#FF0080", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
         ➕ Add a Day
       </button>
     </div>
@@ -964,39 +981,67 @@ function Dashboard({ data, setCurrentView, openJob, setShowNewJob }) {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      <Card style={{ background: "linear-gradient(135deg, #FF1493 0%, #FF69B4 40%, #FF85C8 100%)", color: "#fff", border: "none" }}>
-        <h2 style={{ fontFamily: "'Sora', sans-serif", fontSize: 22, fontWeight: 800, margin: "0 0 4px" }}>Hey Thea! 👋</h2>
-        <p style={{ fontSize: 13, opacity: 0.9, margin: 0 }}>Ready to make some spaces sparkle today? ✨</p>
-        <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
-          <button onClick={() => { setShowNewJob(true); setCurrentView("jobs"); }} style={{ flex: 1, background: "rgba(255,255,255,0.25)", border: "2px solid rgba(255,255,255,0.4)", borderRadius: 12, padding: "10px", color: "#fff", fontWeight: 700, fontSize: 13, cursor: "pointer", backdropFilter: "blur(10px)" }}>✨ New Assessment</button>
-          <button onClick={() => setCurrentView("calendar")} style={{ flex: 1, background: "rgba(255,255,255,0.15)", border: "2px solid rgba(255,255,255,0.3)", borderRadius: 12, padding: "10px", color: "#fff", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>📅 My Calendar</button>
+      {/* Greeting Card with flat illustration */}
+      <Card style={{ background: "linear-gradient(135deg, #FF3CAC 0%, #FF0080 60%, #E040FB 100%)", color: "#fff", border: "none", position: "relative", overflow: "hidden", padding: "28px 20px 22px" }}>
+        {/* Decorative blobs */}
+        <div style={{ position: "absolute", top: -30, right: -20, width: 100, height: 100, borderRadius: "50%", background: "rgba(255,255,255,0.08)" }} />
+        <div style={{ position: "absolute", bottom: -20, left: -15, width: 70, height: 70, borderRadius: "50%", background: "rgba(255,255,255,0.06)" }} />
+        <div style={{ position: "absolute", top: 50, right: 40, width: 40, height: 40, borderRadius: "50%", background: "rgba(255,255,255,0.05)" }} />
+        {/* Sparkle accents */}
+        <div style={{ position: "absolute", top: 14, right: 18, fontSize: 22, opacity: 0.5, animation: "sparkle 2s ease-in-out infinite" }}>✨</div>
+        <div style={{ position: "absolute", top: 44, right: 56, fontSize: 14, opacity: 0.35, animation: "sparkle 2.5s ease-in-out infinite 0.5s" }}>⭐</div>
+        <div style={{ position: "absolute", bottom: 44, right: 22, fontSize: 12, opacity: 0.3, animation: "sparkle 3s ease-in-out infinite 1s" }}>💖</div>
+        <div style={{ position: "absolute", top: 20, left: "40%", fontSize: 10, opacity: 0.2, animation: "sparkle 2.8s ease-in-out infinite 0.3s" }}>✦</div>
+        {/* Flat illustration — girl with clipboard */}
+        <svg style={{ position: "absolute", bottom: 0, right: 6, opacity: 0.15, width: 90, height: 90 }} viewBox="0 0 100 100" fill="none">
+          <circle cx="50" cy="25" r="14" fill="#fff"/>
+          <path d="M50 39c-12 0-20 8-20 20v12c0 2 1 3 3 3h34c2 0 3-1 3-3V59c0-12-8-20-20-20z" fill="#fff"/>
+          <rect x="38" y="42" width="24" height="30" rx="3" fill="rgba(255,255,255,0.5)"/>
+          <rect x="42" y="48" width="16" height="2" rx="1" fill="#FF3CAC"/>
+          <rect x="42" y="53" width="12" height="2" rx="1" fill="#FF3CAC"/>
+          <rect x="42" y="58" width="14" height="2" rx="1" fill="#FF3CAC"/>
+          <circle cx="30" cy="14" r="3" fill="rgba(255,255,255,0.4)"/>
+          <circle cx="72" cy="18" r="2" fill="rgba(255,255,255,0.3)"/>
+          <path d="M35 10l2 4 4-1-3 3 2 4-4-2-4 2 2-4-3-3 4 1z" fill="rgba(255,255,255,0.35)"/>
+          <path d="M68 8l1.5 3 3-.8-2.2 2.2 1.5 3-3-1.5-3 1.5 1.5-3-2.2-2.2 3 .8z" fill="rgba(255,255,255,0.25)"/>
+        </svg>
+        <h2 style={{ fontFamily: "'Nunito', sans-serif", fontSize: 26, fontWeight: 900, margin: "0 0 4px", position: "relative", zIndex: 1, textShadow: "0 2px 12px rgba(0,0,0,0.1)" }}>Hey Thea! 👋</h2>
+        <p style={{ fontSize: 13, color: "#FFD6E8", margin: "0 0 18px", fontWeight: 500, position: "relative", zIndex: 1, lineHeight: 1.5 }}>Ready to make some spaces sparkle today? ✨</p>
+        <div style={{ display: "flex", gap: 8, position: "relative", zIndex: 1 }}>
+          <button onClick={() => { setShowNewJob(true); setCurrentView("jobs"); }} style={{ flex: 1, background: "#fff", border: "none", borderRadius: 20, padding: "12px", color: "#FF0080", fontWeight: 800, fontSize: 13, cursor: "pointer", fontFamily: "'Nunito', sans-serif", boxShadow: "0 4px 20px rgba(255,0,128,0.3)" }}>✨ New Assessment</button>
+          <button onClick={() => setCurrentView("calendar")} style={{ flex: 1, background: "rgba(255,255,255,0.2)", border: "2px solid rgba(255,255,255,0.3)", borderRadius: 20, padding: "12px", color: "#fff", fontWeight: 700, fontSize: 13, cursor: "pointer", fontFamily: "'Nunito', sans-serif", backdropFilter: "blur(10px)" }}>📅 My Calendar</button>
         </div>
       </Card>
 
+      {/* Stat Tiles */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
         {[
-          { label: "Active Jobs", value: stats.active, emoji: "🔥", color: "#FF1493" },
-          { label: "Completed", value: stats.completed, emoji: "✅", color: "#34D399" },
-          { label: "Earned", value: formatCurrency(stats.revenue), emoji: "💰", color: "#FF69B4" },
-          { label: "Pending", value: formatCurrency(stats.pending), emoji: "⏳", color: "#60A5FA" },
-        ].map((s) => (
-          <Card key={s.label} style={{ padding: 14, textAlign: "center" }}>
-            <div style={{ fontSize: 22 }}>{s.emoji}</div>
-            <div style={{ fontFamily: "'Sora', sans-serif", fontSize: 20, fontWeight: 800, color: s.color }}>{s.value}</div>
-            <div style={{ fontSize: 11, color: "#999", fontWeight: 600 }}>{s.label}</div>
+          { label: "Active Jobs", value: stats.active, emoji: "🔥", color: "#FF3CAC" },
+          { label: "Completed", value: stats.completed, emoji: "✅", color: "#10B981" },
+          { label: "Earned", value: formatCurrency(stats.revenue), emoji: "💰", color: "#FF3CAC" },
+          { label: "Pending", value: formatCurrency(stats.pending), emoji: "⏳", color: "#A855F7" },
+        ].map((s, i) => (
+          <Card key={s.label} style={{ padding: 16, textAlign: "center", animationDelay: `${i * 0.08}s` }}>
+            <div style={{ fontSize: 24, marginBottom: 4 }}>{s.emoji}</div>
+            <div style={{ fontFamily: "'Nunito', sans-serif", fontSize: 22, fontWeight: 900, color: s.color }}>{s.value}</div>
+            <div style={{ fontSize: 11, color: "#6B6B6B", fontWeight: 600 }}>{s.label}</div>
           </Card>
         ))}
       </div>
 
+      {/* Needs Action */}
       {needsAction.length > 0 && (
         <div>
-          <h3 style={{ fontFamily: "'Sora', sans-serif", fontSize: 16, fontWeight: 700, color: "#333", margin: "0 0 10px" }}>⚡ Needs Action</h3>
+          <h3 style={{ fontFamily: "'Nunito', sans-serif", fontSize: 16, fontWeight: 800, color: "#2D2D2D", margin: "0 0 10px" }}>⚡ Needs Action</h3>
           {needsAction.map((job) => (
             <Card key={job.id} onClick={() => openJob(job.id)} style={{ padding: 14, marginBottom: 8 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <div>
-                  <div style={{ fontWeight: 700, fontSize: 14 }}>{job.clientName}</div>
-                  <div style={{ fontSize: 12, color: "#888" }}>{getJobEmojis(job.spaces)} {getJobSummary(job.spaces)}</div>
+                <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+                  <div style={{ width: 36, height: 36, borderRadius: "50%", background: "linear-gradient(135deg, #FFB3D1, #E8C5F5)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, flexShrink: 0 }}>{getJobEmojis(job.spaces).slice(0, 2)}</div>
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: 14, color: "#2D2D2D" }}>{job.clientName}</div>
+                    <div style={{ fontSize: 12, color: "#6B6B6B" }}>{getJobSummary(job.spaces)}</div>
+                  </div>
                 </div>
                 <StatusBadge status={job.status} />
               </div>
@@ -1005,28 +1050,46 @@ function Dashboard({ data, setCurrentView, openJob, setShowNewJob }) {
         </div>
       )}
 
+      {/* Coming Up */}
       {upcoming.length > 0 && (
         <div>
-          <h3 style={{ fontFamily: "'Sora', sans-serif", fontSize: 16, fontWeight: 700, color: "#333", margin: "0 0 10px" }}>📅 Coming Up</h3>
+          <h3 style={{ fontFamily: "'Nunito', sans-serif", fontSize: 16, fontWeight: 800, color: "#2D2D2D", margin: "0 0 10px" }}>📅 Coming Up</h3>
           {upcoming.map((job) => (
             <Card key={job.id} onClick={() => openJob(job.id)} style={{ padding: 14, marginBottom: 8 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <div>
-                  <div style={{ fontWeight: 700, fontSize: 14 }}>{job.clientName}</div>
-                  <div style={{ fontSize: 12, color: "#888" }}>{formatDate(job.scheduledDate)}{job.scheduledTime ? ` • ${job.scheduledTime}` : ""}</div>
+                <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+                  <div style={{ width: 36, height: 36, borderRadius: "50%", background: "linear-gradient(135deg, #B8F0E0, #E8C5F5)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, flexShrink: 0 }}>{getJobEmojis(job.spaces).slice(0, 2)}</div>
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: 14, color: "#2D2D2D" }}>{job.clientName}</div>
+                    <div style={{ fontSize: 12, color: "#A855F7" }}>{formatDate(job.scheduledDate)}{job.scheduledTime ? ` • ${job.scheduledTime}` : ""}</div>
+                  </div>
                 </div>
-                <span style={{ fontSize: 20 }}>{getJobEmojis(job.spaces)}</span>
+                <span style={{ fontSize: 20 }}>→</span>
               </div>
             </Card>
           ))}
         </div>
       )}
 
+      {/* Empty State */}
       {data.jobs.length === 0 && (
-        <Card style={{ textAlign: "center", padding: 40 }}>
-          <div style={{ fontSize: 48, marginBottom: 12 }}>🌟</div>
-          <h3 style={{ fontFamily: "'Sora', sans-serif", fontSize: 18, fontWeight: 800, color: "#333", margin: "0 0 8px" }}>Your journey starts here!</h3>
-          <p style={{ fontSize: 13, color: "#888", margin: "0 0 16px" }}>Create your first job assessment to get started</p>
+        <Card style={{ textAlign: "center", padding: "44px 24px", position: "relative", overflow: "hidden" }}>
+          {/* Decorative sparkle dots */}
+          <div style={{ position: "absolute", top: 12, left: 20, fontSize: 16, opacity: 0.2, animation: "sparkle 2s ease-in-out infinite" }}>✨</div>
+          <div style={{ position: "absolute", top: 24, right: 30, fontSize: 12, opacity: 0.15, animation: "sparkle 3s ease-in-out infinite 1s" }}>⭐</div>
+          <div style={{ position: "absolute", bottom: 18, left: 40, fontSize: 10, opacity: 0.12, animation: "sparkle 2.5s ease-in-out infinite 0.5s" }}>💫</div>
+          <div style={{ position: "absolute", bottom: 30, right: 24, width: 24, height: 24, borderRadius: "50%", background: "rgba(255,60,172,0.06)" }} />
+          <div style={{ position: "absolute", top: 40, left: 12, width: 16, height: 16, borderRadius: "50%", background: "rgba(232,197,245,0.12)" }} />
+          <svg width="80" height="80" viewBox="0 0 80 80" fill="none" style={{ marginBottom: 12 }}>
+            <circle cx="40" cy="40" r="36" fill="#FFF0F5" stroke="#FFB3D1" strokeWidth="2" strokeDasharray="6 4"/>
+            <path d="M40 18l3 8 8-1-6 6 3 8-8-4-8 4 3-8-6-6 8 1z" fill="#FF3CAC" opacity="0.6"/>
+            <rect x="28" y="38" width="24" height="22" rx="4" fill="#E8C5F5" opacity="0.5"/>
+            <rect x="32" y="44" width="16" height="2" rx="1" fill="#FF3CAC" opacity="0.5"/>
+            <rect x="32" y="49" width="12" height="2" rx="1" fill="#FF3CAC" opacity="0.4"/>
+            <rect x="32" y="54" width="14" height="2" rx="1" fill="#FF3CAC" opacity="0.3"/>
+          </svg>
+          <h3 style={{ fontFamily: "'Nunito', sans-serif", fontSize: 20, fontWeight: 900, color: "#2D2D2D", margin: "0 0 8px" }}>Your journey starts here!</h3>
+          <p style={{ fontSize: 13, color: "#6B6B6B", margin: "0 0 18px", lineHeight: 1.6 }}>Create your first job assessment to get started ✨</p>
           <GradientButton onClick={() => { setShowNewJob(true); setCurrentView("jobs"); }}>✨ Create First Job</GradientButton>
         </Card>
       )}
@@ -1044,17 +1107,18 @@ function JobsList({ data, openJob, showNewJob, setShowNewJob, addJob, updateJob,
       {showNewJob && <NewJobForm onClose={() => setShowNewJob(false)} onSave={addJob} settings={settings} />}
       {!showNewJob && (
         <>
-          <div style={{ display: "flex", gap: 6, overflowX: "auto", paddingBottom: 10, marginBottom: 12 }}>
+          {/* Horizontally scrolling filter pills */}
+          <div style={{ display: "flex", gap: 6, overflowX: "auto", paddingBottom: 10, marginBottom: 12, WebkitOverflowScrolling: "touch" }}>
             {["all", "assessment", "estimate-sent", "estimate-approved", "schedule-sent", "scheduled", "in-progress", "completed", "invoiced", "paid"].map((f) => (
-              <button key={f} onClick={() => setFilter(f)} style={{ whiteSpace: "nowrap", padding: "6px 14px", borderRadius: 20, border: filter === f ? "2px solid #FF69B4" : "2px solid #E5E7EB", background: filter === f ? "#FFE4F0" : "#fff", color: filter === f ? "#D6006E" : "#666", fontWeight: 600, fontSize: 12, cursor: "pointer", textTransform: "capitalize" }}>
+              <button key={f} onClick={() => setFilter(f)} style={{ whiteSpace: "nowrap", padding: "7px 16px", borderRadius: 20, border: filter === f ? "none" : "2px solid #FFB3D1", background: filter === f ? "linear-gradient(135deg, #FF3CAC, #FF0080)" : "#fff", color: filter === f ? "#fff" : "#FF0080", fontWeight: 700, fontSize: 12, cursor: "pointer", textTransform: "capitalize", fontFamily: "'Nunito', sans-serif", boxShadow: filter === f ? "0 3px 12px rgba(255,60,172,0.25)" : "none", transition: "all 0.2s" }}>
                 {f === "all" ? "All" : f}
               </button>
             ))}
           </div>
           {filtered.length === 0 && (
             <Card style={{ textAlign: "center", padding: 30 }}>
-              <div style={{ fontSize: 36 }}>📭</div>
-              <p style={{ color: "#888", fontSize: 13 }}>No jobs found for this filter</p>
+              <div style={{ fontSize: 36, marginBottom: 8 }}>📭</div>
+              <p style={{ color: "#6B6B6B", fontSize: 13, fontWeight: 500 }}>No jobs found for this filter</p>
             </Card>
           )}
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -1068,24 +1132,33 @@ function JobsList({ data, openJob, showNewJob, setShowNewJob, addJob, updateJob,
 
 function JobCard({ job, onClick }) {
   const spaces = job.spaces || [];
+  const isCompleted = ["completed", "paid"].includes(job.status);
   return (
-    <Card onClick={onClick} style={{ padding: 14 }}>
+    <Card onClick={onClick} style={{ padding: 14, position: "relative", overflow: "hidden", ...(isCompleted ? { border: "1px solid #B8F0E0" } : {}) }}>
+      {/* Confetti for completed jobs */}
+      {isCompleted && (
+        <>
+          <div style={{ position: "absolute", top: 6, right: 60, fontSize: 10, opacity: 0.3, animation: "sparkle 2s ease-in-out infinite" }}>🎉</div>
+          <div style={{ position: "absolute", bottom: 8, left: 8, fontSize: 8, opacity: 0.2, animation: "sparkle 3s ease-in-out infinite 0.5s" }}>✨</div>
+        </>
+      )}
       <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-        <div style={{ width: 44, height: 44, borderRadius: 14, background: "linear-gradient(135deg, #FFF0E5, #FFE4F0)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: spaces.length > 2 ? 14 : 20, flexShrink: 0 }}>
+        {/* Client avatar circle */}
+        <div style={{ width: 46, height: 46, borderRadius: "50%", background: "linear-gradient(135deg, #FFB3D1, #E8C5F5)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: spaces.length > 2 ? 14 : 20, flexShrink: 0, boxShadow: "0 2px 8px rgba(255,60,172,0.15)" }}>
           {getJobEmojis(spaces)}
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start" }}>
-            <div style={{ fontWeight: 700, fontSize: 14 }}>{job.clientName}</div>
+            <div style={{ fontWeight: 700, fontSize: 14, color: "#2D2D2D" }}>{job.clientName}</div>
             <StatusBadge status={job.status} />
           </div>
-          <div style={{ fontSize: 12, color: "#888", marginTop: 2 }}>
+          <div style={{ fontSize: 12, color: "#6B6B6B", marginTop: 2 }}>
             {spaces.length === 1 ? spaces[0].spaceType : `${spaces.length} spaces`} • {job.estimatedHours}h est.
           </div>
           {spaces.length > 1 && (
             <div style={{ display: "flex", gap: 4, marginTop: 4, flexWrap: "wrap" }}>
               {spaces.map(s => (
-                <span key={s.id} style={{ fontSize: 9, background: "#FFE4F0", color: "#D6006E", padding: "2px 6px", borderRadius: 6, fontWeight: 600 }}>
+                <span key={s.id} style={{ fontSize: 9, background: "#E8C5F5", color: "#6A1B9A", padding: "2px 8px", borderRadius: 10, fontWeight: 700 }}>
                   {SPACE_TYPES.find(t => t.label === s.spaceType)?.emoji} {s.spaceType}
                 </span>
               ))}
@@ -1100,7 +1173,7 @@ function JobCard({ job, onClick }) {
               ))}
             </div>
           ) : job.scheduledDate ? (
-            <div style={{ fontSize: 11, color: "#FF1493", fontWeight: 600, marginTop: 3 }}>📅 {formatDate(job.scheduledDate)}</div>
+            <div style={{ fontSize: 11, color: "#FF3CAC", fontWeight: 600, marginTop: 3 }}>📅 {formatDate(job.scheduledDate)}</div>
           ) : null}
         </div>
       </div>
@@ -1175,18 +1248,18 @@ function NewJobForm({ onClose, onSave, settings }) {
     <div style={{ animation: "fadeIn 0.3s ease" }}>
       <div style={{ display: "flex", gap: 4, marginBottom: 16 }}>
         {Array.from({ length: totalSteps }, (_, i) => (
-          <div key={i} style={{ flex: 1, height: 4, borderRadius: 4, background: i < step ? "linear-gradient(90deg, #FF1493, #FF69B4)" : "#E5E7EB", transition: "all 0.3s" }} />
+          <div key={i} style={{ flex: 1, height: 4, borderRadius: 4, background: i < step ? "linear-gradient(90deg, #FF3CAC, #FF0080)" : "#E5E7EB", transition: "all 0.3s" }} />
         ))}
       </div>
 
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-        <h2 style={{ fontFamily: "'Sora', sans-serif", fontSize: 20, fontWeight: 800, margin: 0 }}>
+        <h2 style={{ fontFamily: "'Nunito', sans-serif", fontSize: 20, fontWeight: 800, margin: 0 }}>
           {step === 1 && "👤 Client Info"}
           {step === 2 && "🏠 Spaces to Organize"}
           {step === 3 && "📅 Scheduling"}
           {step === 4 && "💰 Estimate"}
         </h2>
-        <button onClick={onClose} style={{ background: "none", border: "none", fontSize: 22, cursor: "pointer", color: "#999" }}>✕</button>
+        <button onClick={onClose} style={{ background: "none", border: "none", fontSize: 22, cursor: "pointer", color: "#6B6B6B" }}>✕</button>
       </div>
 
       {/* Step 1: Client */}
@@ -1203,14 +1276,14 @@ function NewJobForm({ onClose, onSave, settings }) {
       {step === 2 && (
         <div>
           {/* Spaces summary bar */}
-          <div style={{ background: "linear-gradient(135deg, #FFF0F5, #FFE4F0, #EFF6FF)", borderRadius: 14, padding: "10px 14px", marginBottom: 12, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div style={{ background: "linear-gradient(135deg, #FFF5F9, #FFE0F0, #EFF6FF)", borderRadius: 14, padding: "10px 14px", marginBottom: 12, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <div>
-              <span style={{ fontSize: 12, fontWeight: 700, color: "#333" }}>{spaces.length} space{spaces.length > 1 ? "s" : ""}</span>
-              <span style={{ fontSize: 12, color: "#888", marginLeft: 8 }}>
+              <span style={{ fontSize: 12, fontWeight: 700, color: "#2D2D2D" }}>{spaces.length} space{spaces.length > 1 ? "s" : ""}</span>
+              <span style={{ fontSize: 12, color: "#6B6B6B", marginLeft: 8 }}>
                 {getJobEmojis(spaces)}
               </span>
             </div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: "#D6006E" }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#FF0080" }}>
               {totalHours}h • {formatCurrency(totalCost)}
             </div>
           </div>
@@ -1228,7 +1301,7 @@ function NewJobForm({ onClose, onSave, settings }) {
             />
           ))}
 
-          <button onClick={addSpace} style={{ width: "100%", padding: "14px", borderRadius: 14, border: "2px dashed #FF69B4", background: "linear-gradient(135deg, #FFF0F5, #FFE4F0)", cursor: "pointer", fontSize: 14, fontWeight: 700, color: "#D6006E", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginTop: 6 }}>
+          <button onClick={addSpace} style={{ width: "100%", padding: "14px", borderRadius: 14, border: "2px dashed #FF0080", background: "linear-gradient(135deg, #FFF5F9, #FFE0F0)", cursor: "pointer", fontSize: 14, fontWeight: 700, color: "#FF0080", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginTop: 6 }}>
             ➕ Add Another Space
           </button>
 
@@ -1240,7 +1313,7 @@ function NewJobForm({ onClose, onSave, settings }) {
       {step === 3 && (
         <div>
           <Card style={{ marginBottom: 12 }}>
-            <label style={{ fontSize: 12, fontWeight: 600, color: "#666", marginBottom: 8, display: "block" }}>Client's Available Days</label>
+            <label style={{ fontSize: 12, fontWeight: 600, color: "#6B6B6B", marginBottom: 8, display: "block" }}>Client's Available Days</label>
             <div style={{ display: "flex", gap: 6, marginBottom: 14, flexWrap: "wrap" }}>
               {DAYS_OF_WEEK.map((d) => (
                 <button key={d} onClick={() => { const arr = form.preferredDays.includes(d) ? form.preferredDays.filter(x => x !== d) : [...form.preferredDays, d]; update("preferredDays", arr); }} style={{ padding: "8px 12px", borderRadius: 10, border: form.preferredDays.includes(d) ? "2px solid #34D399" : "2px solid #E5E7EB", background: form.preferredDays.includes(d) ? "#ECFDF5" : "#fff", cursor: "pointer", fontSize: 12, fontWeight: 600, color: form.preferredDays.includes(d) ? "#059669" : "#666" }}>
@@ -1248,7 +1321,7 @@ function NewJobForm({ onClose, onSave, settings }) {
                 </button>
               ))}
             </div>
-            <label style={{ fontSize: 12, fontWeight: 600, color: "#666", marginBottom: 8, display: "block" }}>Preferred Times</label>
+            <label style={{ fontSize: 12, fontWeight: 600, color: "#6B6B6B", marginBottom: 8, display: "block" }}>Preferred Times</label>
             <div style={{ display: "flex", gap: 6, marginBottom: 14, flexWrap: "wrap" }}>
               {TIME_SLOTS.map((t) => (
                 <button key={t} onClick={() => { const arr = form.preferredTimes.includes(t) ? form.preferredTimes.filter(x => x !== t) : [...form.preferredTimes, t]; update("preferredTimes", arr); }} style={{ padding: "8px 12px", borderRadius: 10, border: form.preferredTimes.includes(t) ? "2px solid #60A5FA" : "2px solid #E5E7EB", background: form.preferredTimes.includes(t) ? "#EFF6FF" : "#fff", cursor: "pointer", fontSize: 12, fontWeight: 600, color: form.preferredTimes.includes(t) ? "#2563EB" : "#666" }}>
@@ -1256,7 +1329,7 @@ function NewJobForm({ onClose, onSave, settings }) {
                 </button>
               ))}
             </div>
-            <label style={{ fontSize: 12, fontWeight: 600, color: "#666", marginBottom: 8, display: "block" }}>Days That DON'T Work</label>
+            <label style={{ fontSize: 12, fontWeight: 600, color: "#6B6B6B", marginBottom: 8, display: "block" }}>Days That DON'T Work</label>
             <div style={{ display: "flex", gap: 6, marginBottom: 14, flexWrap: "wrap" }}>
               {DAYS_OF_WEEK.map((d) => (
                 <button key={`block-${d}`} onClick={() => { const arr = form.blockedDays.includes(d) ? form.blockedDays.filter(x => x !== d) : [...form.blockedDays, d]; update("blockedDays", arr); }} style={{ padding: "8px 12px", borderRadius: 10, border: form.blockedDays.includes(d) ? "2px solid #FB7185" : "2px solid #E5E7EB", background: form.blockedDays.includes(d) ? "#FFF1F2" : "#fff", cursor: "pointer", fontSize: 12, fontWeight: 600, color: form.blockedDays.includes(d) ? "#E11D48" : "#666" }}>
@@ -1297,8 +1370,8 @@ function NewJobForm({ onClose, onSave, settings }) {
           )}
 
           {/* Breakdown */}
-          <div style={{ background: "linear-gradient(135deg, #FFF0F5, #FFE4F0, #EFF6FF)", borderRadius: 16, padding: 16, marginTop: 8 }}>
-            <h4 style={{ fontFamily: "'Sora', sans-serif", fontSize: 14, fontWeight: 700, margin: "0 0 10px" }}>💎 Estimate Breakdown</h4>
+          <div style={{ background: "linear-gradient(135deg, #FFF5F9, #FFE0F0, #EFF6FF)", borderRadius: 16, padding: 16, marginTop: 8 }}>
+            <h4 style={{ fontFamily: "'Nunito', sans-serif", fontSize: 14, fontWeight: 700, margin: "0 0 10px" }}>💎 Estimate Breakdown</h4>
             
             {/* Per-space breakdown */}
             {spaces.map((s, i) => {
@@ -1306,14 +1379,14 @@ function NewJobForm({ onClose, onSave, settings }) {
               const hrs = s.estimatedHours || estimateSpaceHours(s.spaceType, s.size, s.clutterLevel);
               return (
                 <div key={s.id} style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 4, padding: "4px 0", borderBottom: i < spaces.length - 1 ? "1px solid rgba(192,132,252,0.15)" : "none" }}>
-                  <span style={{ color: "#666" }}>{emoji} {s.spaceType} ({hrs}h)</span>
+                  <span style={{ color: "#6B6B6B" }}>{emoji} {s.spaceType} ({hrs}h)</span>
                   <span style={{ fontWeight: 600 }}>{formatCurrency(hrs * settings.hourlyRate)}</span>
                 </div>
               );
             })}
 
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginTop: 8, paddingTop: 8, borderTop: "1.5px solid rgba(192,132,252,0.2)" }}>
-              <span style={{ color: "#666" }}>Subtotal ({totalHours}h × {formatCurrency(settings.hourlyRate)}/hr)</span>
+              <span style={{ color: "#6B6B6B" }}>Subtotal ({totalHours}h × {formatCurrency(settings.hourlyRate)}/hr)</span>
               <span style={{ fontWeight: 700 }}>{formatCurrency(totalCost)}</span>
             </div>
 
@@ -1324,14 +1397,14 @@ function NewJobForm({ onClose, onSave, settings }) {
               </div>
             )}
             {form.paymentMethod !== "cash" && (
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "#888", marginTop: 4 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "#6B6B6B", marginTop: 4 }}>
                 <span>WA Sales Tax (10.25%)</span>
                 <span>+{formatCurrency((totalCost - (form.discountType === "percent" ? totalCost * form.discountValue / 100 : form.discountType === "dollar" ? form.discountValue : 0)) * WA_TAX_RATE)}</span>
               </div>
             )}
             <div style={{ borderTop: "2px solid rgba(192,132,252,0.25)", paddingTop: 10, marginTop: 8, display: "flex", justifyContent: "space-between" }}>
-              <span style={{ fontWeight: 800, fontFamily: "'Sora', sans-serif", fontSize: 16 }}>Total</span>
-              <span style={{ fontWeight: 800, fontFamily: "'Sora', sans-serif", fontSize: 20, color: "#D6006E" }}>{formatCurrency(calculateTotal())}</span>
+              <span style={{ fontWeight: 800, fontFamily: "'Nunito', sans-serif", fontSize: 16 }}>Total</span>
+              <span style={{ fontWeight: 800, fontFamily: "'Nunito', sans-serif", fontSize: 20, color: "#FF0080" }}>{formatCurrency(calculateTotal())}</span>
             </div>
           </div>
         </Card>
@@ -1351,11 +1424,26 @@ function NewJobForm({ onClose, onSave, settings }) {
 }
 
 // ─── Job Detail ───
-function JobDetail({ job, updateJob, settings, showToast, setCurrentView }) {
+function JobDetail({ job, allJobs, updateJob, deleteJob, settings, showToast, setCurrentView }) {
   const [showFeedback, setShowFeedback] = useState(false);
   const [feedbackText, setFeedbackText] = useState("");
   const [feedbackRating, setFeedbackRating] = useState(5);
   const [expandedSpace, setExpandedSpace] = useState(-1);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  // Manual time entry
+  const [showManualTime, setShowManualTime] = useState(false);
+  const [manualStartDate, setManualStartDate] = useState("");
+  const [manualStartTime, setManualStartTime] = useState("");
+  const [manualEndDate, setManualEndDate] = useState("");
+  const [manualEndTime, setManualEndTime] = useState("");
+  // Edit contact
+  const [showEditContact, setShowEditContact] = useState(false);
+  const [editName, setEditName] = useState("");
+  const [editPhone, setEditPhone] = useState("");
+  const [editEmail, setEditEmail] = useState("");
+  const [editAddress, setEditAddress] = useState("");
+  // Combined invoice
+  const [showCombinedInvoice, setShowCombinedInvoice] = useState(false);
 
   if (!job) return <Card><p>Job not found</p></Card>;
 
@@ -1393,8 +1481,93 @@ function JobDetail({ job, updateJob, settings, showToast, setCurrentView }) {
   const stopTimer = () => {
     const end = new Date().toISOString();
     const hours = Math.round((new Date(end) - new Date(job.actualStartTime)) / 3600000 * 10) / 10;
-    updateJob(job.id, { actualEndTime: end, actualHours: hours, status: "completed" });
+    updateJob(job.id, { actualEndTime: end, actualHours: hours, status: "completed", completedAt: end });
     showToast(`Done! ${hours}h logged ✅`);
+  };
+
+  const markComplete = () => {
+    const now = new Date().toISOString();
+    updateJob(job.id, {
+      status: "completed",
+      completedAt: now,
+      actualEndTime: job.actualEndTime || now,
+      actualHours: job.actualHours || job.estimatedHours || 0,
+    });
+    showToast("Job marked complete! ✅");
+  };
+
+  const handleDeleteJob = () => {
+    deleteJob(job.id);
+    setCurrentView("jobs");
+  };
+
+  // Manual time entry — save start/end times manually
+  const saveManualTime = () => {
+    if (!manualStartDate || !manualStartTime) return showToast("Enter at least a start date & time", "error");
+    const startISO = new Date(`${manualStartDate}T${manualStartTime}`).toISOString();
+    const updates = { actualStartTime: startISO, status: job.status === "scheduled" ? "in-progress" : job.status };
+    if (manualEndDate && manualEndTime) {
+      const endISO = new Date(`${manualEndDate}T${manualEndTime}`).toISOString();
+      const hours = Math.round((new Date(endISO) - new Date(startISO)) / 3600000 * 10) / 10;
+      if (hours <= 0) return showToast("End time must be after start time", "error");
+      updates.actualEndTime = endISO;
+      updates.actualHours = hours;
+      updates.status = "completed";
+      updates.completedAt = endISO;
+    }
+    updateJob(job.id, updates);
+    setShowManualTime(false);
+    showToast(updates.actualEndTime ? `Logged ${updates.actualHours}h ✅` : "Start time saved! ⏱️");
+  };
+
+  // Open edit contact modal with current values
+  const openEditContact = () => {
+    setEditName(job.clientName || "");
+    setEditPhone(job.clientPhone || "");
+    setEditEmail(job.clientEmail || "");
+    setEditAddress(job.clientAddress || "");
+    setShowEditContact(true);
+  };
+
+  const saveContact = () => {
+    if (!editName.trim()) return showToast("Name is required", "error");
+    updateJob(job.id, { clientName: editName.trim(), clientPhone: editPhone.trim(), clientEmail: editEmail.trim(), clientAddress: editAddress.trim() });
+    setShowEditContact(false);
+    showToast("Contact updated! ✏️");
+  };
+
+  // Combined invoice — find same-client completed jobs
+  const sameClientJobs = (allJobs || []).filter(j =>
+    j.clientName?.toLowerCase().trim() === job.clientName?.toLowerCase().trim() &&
+    j.id !== job.id &&
+    ["completed", "invoiced"].includes(j.status)
+  );
+
+  const generateCombinedInvoice = (selectedJobIds) => {
+    const jobsToInvoice = [job, ...(allJobs || []).filter(j => selectedJobIds.includes(j.id))];
+    let totalAmount = 0;
+    jobsToInvoice.forEach(j => {
+      let base = (j.actualHours || j.estimatedHours || 0) * settings.hourlyRate;
+      if (j.discountType === "percent") base -= base * ((j.discountValue || 0) / 100);
+      else if (j.discountType === "dollar") base -= (j.discountValue || 0);
+      if (j.paymentMethod !== "cash") base += base * WA_TAX_RATE;
+      totalAmount += Math.max(0, base);
+    });
+    // Mark all as invoiced with combined reference
+    const combinedRef = generateId();
+    jobsToInvoice.forEach(j => {
+      updateJob(j.id, {
+        invoiceAmount: null,
+        combinedInvoiceRef: combinedRef,
+        combinedInvoiceTotal: totalAmount,
+        combinedInvoiceJobs: jobsToInvoice.map(jj => jj.id),
+        status: "invoiced",
+      });
+    });
+    // Set the total on the current job
+    updateJob(job.id, { invoiceAmount: totalAmount });
+    setShowCombinedInvoice(false);
+    showToast(`Combined invoice: ${formatCurrency(totalAmount)} for ${jobsToInvoice.length} jobs! 🧾`);
   };
 
   const generateInvoice = () => {
@@ -1473,7 +1646,7 @@ function JobDetail({ job, updateJob, settings, showToast, setCurrentView }) {
         costLines += `<br>Discount: ${job.discountType === "percent" ? `${job.discountValue}%` : formatCurrency(job.discountValue)}`;
       }
       if (job.paymentMethod !== "cash") costLines += `<br>WA Sales Tax (10.25%) applies for ${job.paymentMethod} payments`;
-      costLines += `<br><strong style="font-size:16px;color:#D6006E;">Estimated Total: ${formatCurrency(job.totalEstimate || job.estimatedCost)}</strong>`;
+      costLines += `<br><strong style="font-size:16px;color:#FF0080;">Estimated Total: ${formatCurrency(job.totalEstimate || job.estimatedCost)}</strong>`;
 
       const html = buildEmailHTML({
         greeting: `Hi ${job.clientName}! 👋`,
@@ -1532,7 +1705,7 @@ function JobDetail({ job, updateJob, settings, showToast, setCurrentView }) {
         sections: [
           { title: "📋 Spaces", content: spacesText },
           { title: "📅 Proposed Schedule", content: daysHTML },
-          { title: "💰 Estimated Total", content: `<strong style="font-size:16px;color:#D6006E;">${formatCurrency(job.totalEstimate || job.estimatedCost)}</strong> (${job.estimatedHours}h total)` },
+          { title: "💰 Estimated Total", content: `<strong style="font-size:16px;color:#FF0080;">${formatCurrency(job.totalEstimate || job.estimatedCost)}</strong> (${job.estimatedHours}h total)` },
         ],
         cta: '👉 Reply with "CONFIRMED" to book these times!<br><span style="font-size:12px;font-weight:400;">Need different times? Just let me know.</span>',
       });
@@ -1570,7 +1743,7 @@ function JobDetail({ job, updateJob, settings, showToast, setCurrentView }) {
           { title: "✅ Your Session is Booked!", content: `Your SparkleSpace organizing session is officially confirmed.` },
           { title: "📋 Spaces", content: spacesText },
           { title: "📅 Confirmed Schedule", content: daysHTML },
-          { title: "💰 Estimated Total", content: `<strong style="font-size:16px;color:#D6006E;">${formatCurrency(job.totalEstimate || job.estimatedCost)}</strong>` },
+          { title: "💰 Estimated Total", content: `<strong style="font-size:16px;color:#FF0080;">${formatCurrency(job.totalEstimate || job.estimatedCost)}</strong>` },
         ],
         cta: `See you on ${days[0] ? formatDate(days[0].date) : "the scheduled date"}! 🌟`,
       });
@@ -1610,23 +1783,28 @@ function JobDetail({ job, updateJob, settings, showToast, setCurrentView }) {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-      <button onClick={() => setCurrentView("jobs")} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 14, fontWeight: 600, color: "#FF69B4", textAlign: "left", padding: 0 }}>← Back to Jobs</button>
+      <button onClick={() => setCurrentView("jobs")} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 14, fontWeight: 800, color: "#FF0080", textAlign: "left", padding: 0, fontFamily: "'Nunito', sans-serif" }}>← Back to Jobs</button>
 
       {/* Header */}
-      <Card style={{ background: "linear-gradient(135deg, #FFF0F5, #FFE4F0)", border: "1px solid #E8D5FF" }}>
+      <Card style={{ background: "linear-gradient(135deg, #FFF5F9, #FFE0F0)", border: "none", position: "relative", overflow: "hidden" }}>
+        <div style={{ position: "absolute", top: 8, right: 12, fontSize: 18, opacity: 0.15, animation: "sparkle 2.5s ease-in-out infinite" }}>✨</div>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start" }}>
           <div>
-            <h2 style={{ fontFamily: "'Sora', sans-serif", fontSize: 20, fontWeight: 800, margin: "0 0 4px" }}>{job.clientName}</h2>
-            <p style={{ fontSize: 13, color: "#888", margin: 0 }}>{getJobEmojis(spaces)} {getJobSummary(spaces)} • {job.clientAddress || "No address"}</p>
-            {job.clientPhone && <p style={{ fontSize: 12, color: "#FF1493", margin: "4px 0 0", fontWeight: 600 }}>📱 {job.clientPhone}</p>}
+            <h2 style={{ fontFamily: "'Nunito', sans-serif", fontSize: 22, fontWeight: 900, margin: "0 0 4px", color: "#2D2D2D" }}>{job.clientName}</h2>
+            <p style={{ fontSize: 13, color: "#6B6B6B", margin: 0 }}>{getJobEmojis(spaces)} {getJobSummary(spaces)} • {job.clientAddress || "No address"}</p>
+            {job.clientPhone && <p style={{ fontSize: 12, color: "#FF3CAC", margin: "4px 0 0", fontWeight: 700 }}>📱 {job.clientPhone}</p>}
+            {job.clientEmail && <p style={{ fontSize: 11, color: "#6B6B6B", margin: "2px 0 0" }}>📧 {job.clientEmail}</p>}
           </div>
-          <StatusBadge status={job.status} />
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6 }}>
+            <StatusBadge status={job.status} />
+            <button onClick={openEditContact} style={{ background: "none", border: "1.5px solid #FFB3D1", borderRadius: 10, padding: "3px 10px", fontSize: 10, fontWeight: 700, color: "#FF0080", cursor: "pointer", fontFamily: "'Nunito', sans-serif" }}>✏️ Edit</button>
+          </div>
         </div>
         {/* Space chips */}
         {spaces.length > 0 && (
           <div style={{ display: "flex", gap: 6, marginTop: 10, flexWrap: "wrap" }}>
             {spaces.map(s => (
-              <span key={s.id} style={{ fontSize: 11, background: "rgba(192,132,252,0.15)", color: "#D6006E", padding: "3px 10px", borderRadius: 10, fontWeight: 600 }}>
+              <span key={s.id} style={{ fontSize: 11, background: "#E8C5F5", color: "#6A1B9A", padding: "4px 12px", borderRadius: 14, fontWeight: 700 }}>
                 {SPACE_TYPES.find(t => t.label === s.spaceType)?.emoji} {s.spaceType} • {s.estimatedHours || estimateSpaceHours(s.spaceType, s.size, s.clutterLevel)}h
               </span>
             ))}
@@ -1635,7 +1813,7 @@ function JobDetail({ job, updateJob, settings, showToast, setCurrentView }) {
         {/* Schedule days display */}
         {job.scheduleDays && job.scheduleDays.filter(d => d.date).length > 0 && (
           <div style={{ marginTop: 8 }}>
-            <div style={{ fontSize: 11, fontWeight: 600, color: "#888", marginBottom: 4 }}>📅 Schedule ({job.scheduleDays.filter(d => d.date).length} day{job.scheduleDays.filter(d => d.date).length !== 1 ? "s" : ""})</div>
+            <div style={{ fontSize: 11, fontWeight: 600, color: "#6B6B6B", marginBottom: 4 }}>📅 Schedule ({job.scheduleDays.filter(d => d.date).length} day{job.scheduleDays.filter(d => d.date).length !== 1 ? "s" : ""})</div>
             <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
               {job.scheduleDays.filter(d => d.date).map((d, i) => (
                 <span key={d.id || i} style={{ fontSize: 10, background: "#EFF6FF", color: "#2563EB", padding: "3px 8px", borderRadius: 8, fontWeight: 600 }}>
@@ -1649,17 +1827,17 @@ function JobDetail({ job, updateJob, settings, showToast, setCurrentView }) {
 
       {/* Time & Cost */}
       <Card>
-        <h3 style={{ fontFamily: "'Sora', sans-serif", fontSize: 14, fontWeight: 700, margin: "0 0 10px" }}>⏱️ Time & Cost</h3>
+        <h3 style={{ fontFamily: "'Nunito', sans-serif", fontSize: 14, fontWeight: 700, margin: "0 0 10px" }}>⏱️ Time & Cost</h3>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-          <div style={{ background: "#FFF0F5", borderRadius: 12, padding: 10, textAlign: "center" }}>
-            <div style={{ fontSize: 11, color: "#888", fontWeight: 600 }}>Estimated</div>
-            <div style={{ fontWeight: 800, color: "#FF1493", fontSize: 16 }}>{job.estimatedHours}h</div>
-            <div style={{ fontSize: 11, color: "#888" }}>{formatCurrency(job.estimatedCost)}</div>
+          <div style={{ background: "#FFF5F9", borderRadius: 16, padding: 12, textAlign: "center" }}>
+            <div style={{ fontSize: 11, color: "#6B6B6B", fontWeight: 600 }}>Estimated</div>
+            <div style={{ fontWeight: 800, color: "#FF3CAC", fontSize: 16 }}>{job.estimatedHours}h</div>
+            <div style={{ fontSize: 11, color: "#6B6B6B" }}>{formatCurrency(job.estimatedCost)}</div>
           </div>
-          <div style={{ background: "#FFE4F0", borderRadius: 12, padding: 10, textAlign: "center" }}>
-            <div style={{ fontSize: 11, color: "#888", fontWeight: 600 }}>Actual</div>
-            <div style={{ fontWeight: 800, color: "#D6006E", fontSize: 16 }}>{job.actualHours ? `${job.actualHours}h` : "—"}</div>
-            {job.actualHours && <div style={{ fontSize: 11, color: "#888" }}>{formatCurrency(job.actualHours * settings.hourlyRate)}</div>}
+          <div style={{ background: "#FFE0F0", borderRadius: 16, padding: 12, textAlign: "center" }}>
+            <div style={{ fontSize: 11, color: "#6B6B6B", fontWeight: 600 }}>Actual</div>
+            <div style={{ fontWeight: 800, color: "#FF0080", fontSize: 16 }}>{job.actualHours ? `${job.actualHours}h` : "—"}</div>
+            {job.actualHours && <div style={{ fontSize: 11, color: "#6B6B6B" }}>{formatCurrency(job.actualHours * settings.hourlyRate)}</div>}
           </div>
         </div>
         {accuracyDiff !== null && (
@@ -1672,8 +1850,8 @@ function JobDetail({ job, updateJob, settings, showToast, setCurrentView }) {
       {/* Spaces (editable) */}
       <Card>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-          <h3 style={{ fontFamily: "'Sora', sans-serif", fontSize: 14, fontWeight: 700, margin: 0 }}>🏠 Spaces ({spaces.length})</h3>
-          <button onClick={addSpaceToJob} style={{ background: "linear-gradient(135deg, #FFE4F0, #FFF0F5)", border: "1.5px solid #FFB3D9", borderRadius: 10, padding: "5px 12px", fontSize: 12, fontWeight: 700, color: "#D6006E", cursor: "pointer" }}>
+          <h3 style={{ fontFamily: "'Nunito', sans-serif", fontSize: 14, fontWeight: 700, margin: 0 }}>🏠 Spaces ({spaces.length})</h3>
+          <button onClick={addSpaceToJob} style={{ background: "linear-gradient(135deg, #FFE0F0, #FFF5F9)", border: "1.5px solid #FFB3D9", borderRadius: 10, padding: "5px 12px", fontSize: 12, fontWeight: 700, color: "#FF0080", cursor: "pointer" }}>
             + Add Space
           </button>
         </div>
@@ -1693,7 +1871,7 @@ function JobDetail({ job, updateJob, settings, showToast, setCurrentView }) {
 
       {/* After Photos (per-space) */}
       <Card>
-        <h3 style={{ fontFamily: "'Sora', sans-serif", fontSize: 14, fontWeight: 700, margin: "0 0 10px" }}>📸 After Photos</h3>
+        <h3 style={{ fontFamily: "'Nunito', sans-serif", fontSize: 14, fontWeight: 700, margin: "0 0 10px" }}>📸 After Photos</h3>
         {spaces.map((space, index) => (
           <div key={space.id} style={{ marginBottom: 10 }}>
             <PhotoUpload
@@ -1713,18 +1891,18 @@ function JobDetail({ job, updateJob, settings, showToast, setCurrentView }) {
 
       {/* Notes */}
       <Card>
-        <h3 style={{ fontFamily: "'Sora', sans-serif", fontSize: 14, fontWeight: 700, margin: "0 0 10px" }}>📝 Job Notes</h3>
+        <h3 style={{ fontFamily: "'Nunito', sans-serif", fontSize: 14, fontWeight: 700, margin: "0 0 10px" }}>📝 Job Notes</h3>
         <TextArea value={job.notes || ""} onChange={(e) => updateJob(job.id, { notes: e.target.value })} placeholder="Add job notes..." />
       </Card>
 
       {/* Actions */}
       <Card>
-        <h3 style={{ fontFamily: "'Sora', sans-serif", fontSize: 14, fontWeight: 700, margin: "0 0 10px" }}>⚡ Actions</h3>
+        <h3 style={{ fontFamily: "'Nunito', sans-serif", fontSize: 14, fontWeight: 700, margin: "0 0 10px" }}>⚡ Actions</h3>
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           {/* Step 1: Assessment — finalize estimate then send to client */}
           {job.status === "assessment" && (
             <>
-              <div style={{ background: "linear-gradient(135deg, #FFF8E1, #FFF3E0)", borderRadius: 12, padding: 10, marginBottom: 4, fontSize: 12, color: "#E65100", fontWeight: 600 }}>
+              <div style={{ background: "linear-gradient(135deg, #FFD6C0, #FFE0F0)", borderRadius: 16, padding: 12, marginBottom: 4, fontSize: 12, color: "#E65100", fontWeight: 600 }}>
                 📋 Finalize your assessment, then send it to the client for approval
               </div>
               <GradientButton onClick={sendAssessmentToClient} style={{ opacity: sending ? 0.6 : 1, pointerEvents: sending ? "none" : "auto" }}>
@@ -1736,11 +1914,11 @@ function JobDetail({ job, updateJob, settings, showToast, setCurrentView }) {
           {/* Step 2: Estimate sent — waiting for client approval */}
           {job.status === "estimate-sent" && (
             <>
-              <div style={{ background: "#FFF8E1", borderRadius: 12, padding: 12, textAlign: "center", marginBottom: 4 }}>
+              <div style={{ background: "#FFE0F0", borderRadius: 16, padding: 14, textAlign: "center", marginBottom: 4 }}>
                 <div style={{ fontSize: 20, marginBottom: 4 }}>⏳</div>
                 <div style={{ fontSize: 13, fontWeight: 700, color: "#F57F17" }}>Waiting for Client Approval</div>
-                <div style={{ fontSize: 11, color: "#888", marginTop: 2 }}>Sent {job.estimateSentAt ? formatDate(job.estimateSentAt) : ""}</div>
-                {job.clientEmail && <div style={{ fontSize: 11, color: "#FF1493", marginTop: 2 }}>📧 {job.clientEmail}</div>}
+                <div style={{ fontSize: 11, color: "#6B6B6B", marginTop: 2 }}>Sent {job.estimateSentAt ? formatDate(job.estimateSentAt) : ""}</div>
+                {job.clientEmail && <div style={{ fontSize: 11, color: "#FF3CAC", marginTop: 2 }}>📧 {job.clientEmail}</div>}
               </div>
               <GradientButton variant="success" onClick={markEstimateApproved}>✅ Client Approved!</GradientButton>
               <GradientButton variant="secondary" onClick={sendAssessmentToClient} style={{ fontSize: 12, opacity: sending ? 0.6 : 1, pointerEvents: sending ? "none" : "auto" }}>
@@ -1752,7 +1930,7 @@ function JobDetail({ job, updateJob, settings, showToast, setCurrentView }) {
           {/* Step 3: Estimate approved — set up schedule then send to client */}
           {job.status === "estimate-approved" && (
             <>
-              <div style={{ background: "#E8F5E9", borderRadius: 12, padding: 10, marginBottom: 4, fontSize: 12, color: "#2E7D32", fontWeight: 600 }}>
+              <div style={{ background: "#B8F0E0", borderRadius: 16, padding: 12, marginBottom: 4, fontSize: 12, color: "#2E7D32", fontWeight: 600 }}>
                 ✅ Client approved the estimate! Now set up the schedule and send it.
               </div>
               <ScheduleDaysEditor
@@ -1772,12 +1950,12 @@ function JobDetail({ job, updateJob, settings, showToast, setCurrentView }) {
           {/* Step 4: Schedule sent — waiting for client to accept */}
           {job.status === "schedule-sent" && (
             <>
-              <div style={{ background: "#E1F5FE", borderRadius: 12, padding: 12, textAlign: "center", marginBottom: 4 }}>
+              <div style={{ background: "#E8C5F5", borderRadius: 16, padding: 14, textAlign: "center", marginBottom: 4 }}>
                 <div style={{ fontSize: 20, marginBottom: 4 }}>📅</div>
                 <div style={{ fontSize: 13, fontWeight: 700, color: "#0277BD" }}>Waiting for Schedule Confirmation</div>
-                <div style={{ fontSize: 11, color: "#888", marginTop: 2 }}>Sent {job.scheduleSentAt ? formatDate(job.scheduleSentAt) : ""}</div>
+                <div style={{ fontSize: 11, color: "#6B6B6B", marginTop: 2 }}>Sent {job.scheduleSentAt ? formatDate(job.scheduleSentAt) : ""}</div>
                 {(job.scheduleDays || []).filter(d => d.date).map((d, i) => (
-                  <div key={d.id || i} style={{ fontSize: 11, color: "#666", marginTop: 2 }}>
+                  <div key={d.id || i} style={{ fontSize: 11, color: "#6B6B6B", marginTop: 2 }}>
                     Day {i + 1}: {formatDate(d.date)} • {d.startTime || "TBD"} • {d.hours}h
                   </div>
                 ))}
@@ -1792,37 +1970,50 @@ function JobDetail({ job, updateJob, settings, showToast, setCurrentView }) {
           {/* Step 5: Scheduled — ready to work */}
           {job.status === "scheduled" && !job.actualStartTime && (
             <>
-              <div style={{ background: "#E3F2FD", borderRadius: 12, padding: 10, marginBottom: 4, fontSize: 12, color: "#1565C0", fontWeight: 600 }}>
+              <div style={{ background: "#E8C5F5", borderRadius: 16, padding: 12, marginBottom: 4, fontSize: 12, color: "#1565C0", fontWeight: 600 }}>
                 🎉 Client confirmed! Ready to organize.
               </div>
               <GradientButton variant="success" onClick={startTimer}>⏱️ Start Timer</GradientButton>
+              <button onClick={() => setShowManualTime(true)} style={{ background: "none", border: "1.5px solid #FFB3D1", borderRadius: 14, padding: "10px", color: "#FF0080", fontWeight: 700, fontSize: 12, cursor: "pointer", width: "100%", fontFamily: "'Nunito', sans-serif" }}>
+                🕐 Enter Time Manually
+              </button>
             </>
           )}
 
           {/* Step 6: In progress */}
           {job.status === "in-progress" && job.actualStartTime && !job.actualEndTime && (
             <>
-              <div style={{ background: "#FFF0F5", borderRadius: 12, padding: 12, textAlign: "center", marginBottom: 4 }}>
-                <div style={{ fontSize: 11, color: "#888", fontWeight: 600 }}>Started at</div>
-                <div style={{ fontWeight: 800, color: "#FF1493", fontSize: 16 }}>{formatTime(job.actualStartTime)}</div>
+              <div style={{ background: "#FFF5F9", borderRadius: 16, padding: 14, textAlign: "center", marginBottom: 4 }}>
+                <div style={{ fontSize: 11, color: "#6B6B6B", fontWeight: 600 }}>Started at</div>
+                <div style={{ fontWeight: 800, color: "#FF3CAC", fontSize: 16 }}>{formatTime(job.actualStartTime)}</div>
                 <TimerDisplay startTime={job.actualStartTime} />
               </div>
               <GradientButton variant="danger" onClick={stopTimer}>⏹️ Stop Timer</GradientButton>
+              <button onClick={() => { setManualStartDate(job.actualStartTime.split("T")[0]); setManualStartTime(new Date(job.actualStartTime).toTimeString().slice(0, 5)); setShowManualTime(true); }} style={{ background: "none", border: "1.5px solid #FFB3D1", borderRadius: 14, padding: "10px", color: "#FF0080", fontWeight: 700, fontSize: 12, cursor: "pointer", width: "100%", fontFamily: "'Nunito', sans-serif" }}>
+                🕐 Edit Start/End Time Manually
+              </button>
             </>
           )}
 
           {/* Step 7: Completed */}
           {job.status === "completed" && (
-            <GradientButton onClick={generateInvoice}>🧾 Generate Invoice</GradientButton>
+            <>
+              <GradientButton onClick={generateInvoice}>🧾 Generate Invoice</GradientButton>
+              {sameClientJobs.length > 0 && (
+                <button onClick={() => setShowCombinedInvoice(true)} style={{ background: "none", border: "1.5px solid #E8C5F5", borderRadius: 14, padding: "10px", color: "#6A1B9A", fontWeight: 700, fontSize: 12, cursor: "pointer", width: "100%", fontFamily: "'Nunito', sans-serif" }}>
+                  📋 Combined Invoice ({sameClientJobs.length + 1} jobs for {job.clientName})
+                </button>
+              )}
+            </>
           )}
 
           {/* Step 8: Invoiced */}
           {job.status === "invoiced" && (
             <>
-              <div style={{ background: "#FFE4F0", borderRadius: 12, padding: 12, textAlign: "center", marginBottom: 4 }}>
-                <div style={{ fontSize: 11, color: "#888", fontWeight: 600 }}>Invoice Amount</div>
-                <div style={{ fontWeight: 800, color: "#D6006E", fontSize: 22 }}>{formatCurrency(job.invoiceAmount)}</div>
-                <div style={{ fontSize: 11, color: "#888" }}>via {job.paymentMethod}</div>
+              <div style={{ background: "#FFE0F0", borderRadius: 16, padding: 14, textAlign: "center", marginBottom: 4 }}>
+                <div style={{ fontSize: 11, color: "#6B6B6B", fontWeight: 600 }}>Invoice Amount</div>
+                <div style={{ fontWeight: 800, color: "#FF0080", fontSize: 22 }}>{formatCurrency(job.invoiceAmount)}</div>
+                <div style={{ fontSize: 11, color: "#6B6B6B" }}>via {job.paymentMethod}</div>
               </div>
               <GradientButton variant="success" onClick={markPaid}>💰 Mark as Paid</GradientButton>
             </>
@@ -1833,16 +2024,16 @@ function JobDetail({ job, updateJob, settings, showToast, setCurrentView }) {
             <GradientButton onClick={() => setShowFeedback(true)}>🌟 Collect Feedback</GradientButton>
           )}
           {job.feedback && (
-            <div style={{ background: "#ECFDF5", borderRadius: 12, padding: 12 }}>
+            <div style={{ background: "#B8F0E0", borderRadius: 16, padding: 14 }}>
               <div style={{ fontSize: 12, fontWeight: 600, color: "#059669", marginBottom: 4 }}>Client Feedback</div>
               <div style={{ fontSize: 16, marginBottom: 4 }}>{"⭐".repeat(job.feedback.rating)}</div>
-              <div style={{ fontSize: 13, color: "#333" }}>{job.feedback.text || "No comment"}</div>
+              <div style={{ fontSize: 13, color: "#2D2D2D" }}>{job.feedback.text || "No comment"}</div>
             </div>
           )}
 
           {/* Workflow progress tracker */}
-          <div style={{ marginTop: 8, background: "#FFF5F8", borderRadius: 12, padding: 12, border: "1px solid #FFD6E8" }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: "#888", marginBottom: 8 }}>📍 Workflow</div>
+          <div style={{ marginTop: 8, background: "linear-gradient(135deg, #FFF5F9, #FFE0F0)", borderRadius: 16, padding: 14, border: "none" }}>
+            <div style={{ fontSize: 11, fontWeight: 800, color: "#6B6B6B", marginBottom: 8, fontFamily: "'Nunito', sans-serif" }}>📍 Workflow</div>
             <div style={{ display: "flex", gap: 3, alignItems: "center", flexWrap: "wrap" }}>
               {[
                 { key: "assessment", label: "Assess", emoji: "📋" },
@@ -1862,7 +2053,7 @@ function JobDetail({ job, updateJob, settings, showToast, setCurrentView }) {
                 const isCurrent = thisIdx === currentIdx;
                 return (
                   <div key={s.key} style={{ display: "flex", alignItems: "center", gap: 3 }}>
-                    <div style={{ width: 22, height: 22, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, background: isCurrent ? "linear-gradient(135deg, #FF1493, #FF69B4)" : isDone ? "#34D399" : "#E5E7EB", color: isCurrent || isDone ? "#fff" : "#999", fontWeight: 700 }}>
+                    <div style={{ width: 22, height: 22, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, background: isCurrent ? "linear-gradient(135deg, #FF3CAC, #FF0080)" : isDone ? "#34D399" : "#E5E7EB", color: isCurrent || isDone ? "#fff" : "#999", fontWeight: 700 }}>
                       {isDone ? "✓" : s.emoji}
                     </div>
                     {i < arr.length - 1 && <div style={{ width: 10, height: 2, background: isDone ? "#34D399" : "#E5E7EB", borderRadius: 1 }} />}
@@ -1870,7 +2061,36 @@ function JobDetail({ job, updateJob, settings, showToast, setCurrentView }) {
                 );
               })}
             </div>
+            {/* Completed timestamp */}
+            {job.completedAt && (
+              <div style={{ marginTop: 8, fontSize: 11, color: "#059669", fontWeight: 600, background: "#B8F0E0", borderRadius: 8, padding: "6px 10px", display: "inline-block" }}>
+                ✅ Completed: {formatDate(job.completedAt)} at {formatTime(job.completedAt)}
+              </div>
+            )}
           </div>
+
+          {/* Mark Complete — available from any pre-completion status */}
+          {!["completed", "invoiced", "paid"].includes(job.status) && (
+            <GradientButton variant="success" onClick={markComplete} style={{ marginTop: 4 }}>
+              ✅ Mark Job as Complete
+            </GradientButton>
+          )}
+
+          {/* Delete Job */}
+          {!confirmDelete ? (
+            <button onClick={() => setConfirmDelete(true)} style={{ marginTop: 4, background: "none", border: "2px solid #FCA5A5", borderRadius: 14, padding: "10px 20px", color: "#DC2626", fontWeight: 700, fontSize: 13, cursor: "pointer", fontFamily: "'Poppins', sans-serif", width: "100%", transition: "all 0.2s" }}>
+              🗑️ Delete This Job
+            </button>
+          ) : (
+            <div style={{ marginTop: 4, background: "#FEF2F2", border: "2px solid #FCA5A5", borderRadius: 14, padding: 14, textAlign: "center" }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "#DC2626", marginBottom: 10 }}>⚠️ Delete this job permanently?</div>
+              <div style={{ fontSize: 11, color: "#6B6B6B", marginBottom: 10 }}>This will remove all data for <strong>{job.clientName}</strong> and cannot be undone.</div>
+              <div style={{ display: "flex", gap: 8 }}>
+                <GradientButton variant="secondary" onClick={() => setConfirmDelete(false)} style={{ flex: 1, fontSize: 12 }}>Cancel</GradientButton>
+                <GradientButton variant="danger" onClick={handleDeleteJob} style={{ flex: 1, fontSize: 12 }}>🗑️ Yes, Delete</GradientButton>
+              </div>
+            </div>
+          )}
         </div>
       </Card>
 
@@ -1878,8 +2098,8 @@ function JobDetail({ job, updateJob, settings, showToast, setCurrentView }) {
       {showFeedback && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: 20 }}>
           <Card style={{ width: "100%", maxWidth: 400 }}>
-            <h3 style={{ fontFamily: "'Sora', sans-serif", fontSize: 18, fontWeight: 800, margin: "0 0 14px" }}>🌟 Client Feedback</h3>
-            <label style={{ fontSize: 12, fontWeight: 600, color: "#666", marginBottom: 8, display: "block" }}>Rating</label>
+            <h3 style={{ fontFamily: "'Nunito', sans-serif", fontSize: 18, fontWeight: 800, margin: "0 0 14px" }}>🌟 Client Feedback</h3>
+            <label style={{ fontSize: 12, fontWeight: 600, color: "#6B6B6B", marginBottom: 8, display: "block" }}>Rating</label>
             <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
               {[1, 2, 3, 4, 5].map((n) => (
                 <button key={n} onClick={() => setFeedbackRating(n)} style={{ fontSize: 28, background: "none", border: "none", cursor: "pointer", opacity: n <= feedbackRating ? 1 : 0.3, transition: "all 0.2s" }}>⭐</button>
@@ -1893,6 +2113,149 @@ function JobDetail({ job, updateJob, settings, showToast, setCurrentView }) {
           </Card>
         </div>
       )}
+
+      {/* Manual Time Entry Modal */}
+      {showManualTime && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: 20 }}>
+          <Card style={{ width: "100%", maxWidth: 400 }}>
+            <h3 style={{ fontFamily: "'Nunito', sans-serif", fontSize: 18, fontWeight: 800, margin: "0 0 4px" }}>🕐 Enter Time Manually</h3>
+            <p style={{ fontSize: 12, color: "#6B6B6B", margin: "0 0 14px", lineHeight: 1.5 }}>Set the actual start and end times for this job. Leave end time empty to just record the start.</p>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+              <Input label="Start Date *" type="date" value={manualStartDate} onChange={(e) => setManualStartDate(e.target.value)} />
+              <Input label="Start Time *" type="time" value={manualStartTime} onChange={(e) => setManualStartTime(e.target.value)} />
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+              <Input label="End Date" type="date" value={manualEndDate} onChange={(e) => setManualEndDate(e.target.value)} />
+              <Input label="End Time" type="time" value={manualEndTime} onChange={(e) => setManualEndTime(e.target.value)} />
+            </div>
+            {manualStartDate && manualStartTime && manualEndDate && manualEndTime && (() => {
+              const hrs = Math.round((new Date(`${manualEndDate}T${manualEndTime}`) - new Date(`${manualStartDate}T${manualStartTime}`)) / 3600000 * 10) / 10;
+              return hrs > 0 ? (
+                <div style={{ background: "#FFF5F9", borderRadius: 12, padding: 10, textAlign: "center", marginBottom: 8 }}>
+                  <span style={{ fontSize: 12, color: "#6B6B6B" }}>Total: </span>
+                  <span style={{ fontWeight: 800, color: "#FF0080", fontSize: 16 }}>{hrs}h</span>
+                  <span style={{ fontSize: 12, color: "#6B6B6B" }}> = {formatCurrency(hrs * settings.hourlyRate)}</span>
+                </div>
+              ) : null;
+            })()}
+            <div style={{ display: "flex", gap: 8 }}>
+              <GradientButton variant="secondary" onClick={() => setShowManualTime(false)} style={{ flex: 1 }}>Cancel</GradientButton>
+              <GradientButton onClick={saveManualTime} style={{ flex: 1 }}>💾 Save Time</GradientButton>
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {/* Edit Contact Modal */}
+      {showEditContact && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: 20 }}>
+          <Card style={{ width: "100%", maxWidth: 400 }}>
+            <h3 style={{ fontFamily: "'Nunito', sans-serif", fontSize: 18, fontWeight: 800, margin: "0 0 14px" }}>✏️ Edit Client Details</h3>
+            <Input label="Client Name *" value={editName} onChange={(e) => setEditName(e.target.value)} placeholder="Client name" />
+            <Input label="Phone" value={editPhone} onChange={(e) => setEditPhone(e.target.value)} placeholder="425-555-1234" type="tel" />
+            <Input label="Email" value={editEmail} onChange={(e) => setEditEmail(e.target.value)} placeholder="email@example.com" type="email" />
+            <Input label="Address" value={editAddress} onChange={(e) => setEditAddress(e.target.value)} placeholder="123 Main St" />
+            <div style={{ display: "flex", gap: 8 }}>
+              <GradientButton variant="secondary" onClick={() => setShowEditContact(false)} style={{ flex: 1 }}>Cancel</GradientButton>
+              <GradientButton onClick={saveContact} style={{ flex: 1 }}>💾 Save</GradientButton>
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {/* Combined Invoice Modal */}
+      {showCombinedInvoice && <CombinedInvoiceModal
+        currentJob={job}
+        sameClientJobs={sameClientJobs}
+        settings={settings}
+        onClose={() => setShowCombinedInvoice(false)}
+        onGenerate={generateCombinedInvoice}
+      />}
+    </div>
+  );
+}
+
+function CombinedInvoiceModal({ currentJob, sameClientJobs, settings, onClose, onGenerate }) {
+  const [selected, setSelected] = useState(sameClientJobs.map(j => j.id));
+  const toggle = (id) => setSelected(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+
+  const allJobs = [currentJob, ...sameClientJobs.filter(j => selected.includes(j.id))];
+  let totalAmount = 0;
+  const breakdown = allJobs.map(j => {
+    let base = (j.actualHours || j.estimatedHours || 0) * settings.hourlyRate;
+    if (j.discountType === "percent") base -= base * ((j.discountValue || 0) / 100);
+    else if (j.discountType === "dollar") base -= (j.discountValue || 0);
+    const preTax = Math.max(0, base);
+    const tax = j.paymentMethod !== "cash" ? preTax * WA_TAX_RATE : 0;
+    const total = preTax + tax;
+    totalAmount += total;
+    return { job: j, hours: j.actualHours || j.estimatedHours || 0, preTax, tax, total };
+  });
+
+  return (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: 20 }}>
+      <Card style={{ width: "100%", maxWidth: 420, maxHeight: "85vh", overflow: "auto" }}>
+        <h3 style={{ fontFamily: "'Nunito', sans-serif", fontSize: 18, fontWeight: 800, margin: "0 0 4px" }}>📋 Combined Invoice</h3>
+        <p style={{ fontSize: 12, color: "#6B6B6B", margin: "0 0 14px", lineHeight: 1.5 }}>Bill <strong>{currentJob.clientName}</strong> for multiple jobs in one invoice.</p>
+
+        {/* Current job (always included) */}
+        <div style={{ background: "#FFF5F9", borderRadius: 14, padding: 12, marginBottom: 8, border: "1.5px solid #FFB3D1" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "#2D2D2D" }}>✨ This Job (included)</div>
+              <div style={{ fontSize: 11, color: "#6B6B6B" }}>{getJobSummary(currentJob.spaces)} • {currentJob.actualHours || currentJob.estimatedHours}h</div>
+              {currentJob.scheduledDate && <div style={{ fontSize: 10, color: "#FF3CAC", fontWeight: 600 }}>📅 {formatDate(currentJob.scheduledDate)}</div>}
+            </div>
+            <div style={{ fontWeight: 800, color: "#FF0080", fontSize: 14 }}>{formatCurrency(breakdown[0]?.total || 0)}</div>
+          </div>
+        </div>
+
+        {/* Other same-client jobs */}
+        {sameClientJobs.length > 0 && (
+          <div style={{ fontSize: 11, fontWeight: 700, color: "#6B6B6B", marginBottom: 6 }}>Select additional jobs to include:</div>
+        )}
+        {sameClientJobs.map(j => {
+          const isSelected = selected.includes(j.id);
+          const bk = breakdown.find(b => b.job.id === j.id);
+          return (
+            <div key={j.id} onClick={() => toggle(j.id)} style={{ background: isSelected ? "#FFF5F9" : "#fff", borderRadius: 14, padding: 12, marginBottom: 6, border: isSelected ? "1.5px solid #FFB3D1" : "1.5px solid #E5E7EB", cursor: "pointer", transition: "all 0.2s" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                  <div style={{ width: 22, height: 22, borderRadius: 6, border: isSelected ? "2px solid #FF0080" : "2px solid #D1D5DB", background: isSelected ? "#FF0080" : "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, color: "#fff", fontWeight: 700, transition: "all 0.2s", flexShrink: 0 }}>
+                    {isSelected && "✓"}
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: "#2D2D2D" }}>{getJobSummary(j.spaces)} • {j.actualHours || j.estimatedHours}h</div>
+                    <div style={{ fontSize: 10, color: "#6B6B6B" }}>
+                      {j.scheduledDate ? formatDate(j.scheduledDate) : "No date"} • {j.status}
+                    </div>
+                  </div>
+                </div>
+                <div style={{ fontWeight: 700, color: isSelected ? "#FF0080" : "#999", fontSize: 13 }}>{bk ? formatCurrency(bk.total) : "—"}</div>
+              </div>
+            </div>
+          );
+        })}
+
+        {/* Total breakdown */}
+        <div style={{ background: "linear-gradient(135deg, #FFF5F9, #FFE0F0)", borderRadius: 14, padding: 14, marginTop: 8 }}>
+          {breakdown.map((b, i) => (
+            <div key={b.job.id} style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "#6B6B6B", padding: "3px 0", borderBottom: i < breakdown.length - 1 ? "1px solid rgba(255,60,172,0.1)" : "none" }}>
+              <span>{i === 0 ? "This job" : getJobSummary(b.job.spaces)} ({b.hours}h{b.tax > 0 ? " + tax" : ""})</span>
+              <span style={{ fontWeight: 600 }}>{formatCurrency(b.total)}</span>
+            </div>
+          ))}
+          <div style={{ display: "flex", justifyContent: "space-between", marginTop: 8, paddingTop: 8, borderTop: "2px solid #FFB3D1" }}>
+            <span style={{ fontWeight: 800, fontSize: 14, color: "#2D2D2D" }}>Total</span>
+            <span style={{ fontWeight: 900, fontSize: 18, color: "#FF0080" }}>{formatCurrency(totalAmount)}</span>
+          </div>
+        </div>
+
+        <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
+          <GradientButton variant="secondary" onClick={onClose} style={{ flex: 1 }}>Cancel</GradientButton>
+          <GradientButton onClick={() => onGenerate(selected)} style={{ flex: 1 }}>🧾 Generate Combined Invoice</GradientButton>
+        </div>
+      </Card>
     </div>
   );
 }
@@ -1907,7 +2270,7 @@ function TimerDisplay({ startTime }) {
   const m = Math.floor((elapsed % 3600) / 60);
   const s = elapsed % 60;
   return (
-    <div style={{ fontFamily: "'Sora', sans-serif", fontSize: 28, fontWeight: 800, color: "#FF1493", marginTop: 4, letterSpacing: 2 }}>
+    <div style={{ fontFamily: "'Nunito', sans-serif", fontSize: 28, fontWeight: 800, color: "#FF3CAC", marginTop: 4, letterSpacing: 2 }}>
       {String(h).padStart(2, "0")}:{String(m).padStart(2, "0")}:{String(s).padStart(2, "0")}
     </div>
   );
@@ -1944,34 +2307,34 @@ function CalendarView({ data, openJob }) {
   return (
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-        <button onClick={() => setCurrentMonth(new Date(year, month - 1))} style={{ background: "#FFE4F0", border: "none", borderRadius: 10, padding: "8px 14px", cursor: "pointer", fontWeight: 700, color: "#D6006E" }}>‹</button>
-        <h2 style={{ fontFamily: "'Sora', sans-serif", fontSize: 18, fontWeight: 800, margin: 0 }}>📅 {monthName}</h2>
-        <button onClick={() => setCurrentMonth(new Date(year, month + 1))} style={{ background: "#FFE4F0", border: "none", borderRadius: 10, padding: "8px 14px", cursor: "pointer", fontWeight: 700, color: "#D6006E" }}>›</button>
+        <button onClick={() => setCurrentMonth(new Date(year, month - 1))} style={{ background: "linear-gradient(135deg, #FFB3D1, #E8C5F5)", border: "none", borderRadius: 16, padding: "8px 16px", cursor: "pointer", fontWeight: 800, color: "#FF0080", fontSize: 16, fontFamily: "'Nunito', sans-serif" }}>‹</button>
+        <h2 style={{ fontFamily: "'Nunito', sans-serif", fontSize: 18, fontWeight: 900, margin: 0, color: "#2D2D2D" }}>📅 {monthName}</h2>
+        <button onClick={() => setCurrentMonth(new Date(year, month + 1))} style={{ background: "linear-gradient(135deg, #FFB3D1, #E8C5F5)", border: "none", borderRadius: 16, padding: "8px 16px", cursor: "pointer", fontWeight: 800, color: "#FF0080", fontSize: 16, fontFamily: "'Nunito', sans-serif" }}>›</button>
       </div>
       <Card>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 2, textAlign: "center" }}>
           {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map(d => (
-            <div key={d} style={{ fontSize: 10, fontWeight: 700, color: "#999", padding: "6px 0" }}>{d}</div>
+            <div key={d} style={{ fontSize: 10, fontWeight: 700, color: "#6B6B6B", padding: "6px 0" }}>{d}</div>
           ))}
           {days.map((day, i) => {
             if (!day) return <div key={`e-${i}`} />;
             const jobs = getJobsForDay(day);
             const today = isToday(day);
             return (
-              <div key={day} style={{ padding: "6px 2px", borderRadius: 10, minHeight: 44, background: today ? "linear-gradient(135deg, #FF1493, #FF69B4)" : jobs.length ? "#FFE4F0" : "transparent", cursor: jobs.length ? "pointer" : "default" }} onClick={() => { if (jobs.length) openJob(jobs[0].id); }}>
+              <div key={day} style={{ padding: "6px 2px", borderRadius: 10, minHeight: 44, background: today ? "linear-gradient(135deg, #FF3CAC, #FF0080)" : jobs.length ? "#FFE0F0" : "transparent", cursor: jobs.length ? "pointer" : "default" }} onClick={() => { if (jobs.length) openJob(jobs[0].id); }}>
                 <div style={{ fontSize: 12, fontWeight: today ? 800 : 500, color: today ? "#fff" : "#333" }}>{day}</div>
                 {jobs.slice(0, 2).map((j, idx) => (
-                  <div key={idx} style={{ fontSize: 7, background: today ? "rgba(255,255,255,0.3)" : "#FF69B4", color: "#fff", borderRadius: 4, padding: "1px 3px", marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontWeight: 600 }}>
+                  <div key={idx} style={{ fontSize: 7, background: today ? "rgba(255,255,255,0.3)" : "#FF0080", color: "#fff", borderRadius: 4, padding: "1px 3px", marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontWeight: 600 }}>
                     {j.clientName.split(" ")[0]}
                   </div>
                 ))}
-                {jobs.length > 2 && <div style={{ fontSize: 7, color: today ? "#fff" : "#FF1493", fontWeight: 700 }}>+{jobs.length - 2}</div>}
+                {jobs.length > 2 && <div style={{ fontSize: 7, color: today ? "#fff" : "#FF3CAC", fontWeight: 700 }}>+{jobs.length - 2}</div>}
               </div>
             );
           })}
         </div>
       </Card>
-      <h3 style={{ fontFamily: "'Sora', sans-serif", fontSize: 14, fontWeight: 700, color: "#333", margin: "16px 0 10px" }}>📋 This Month's Jobs</h3>
+      <h3 style={{ fontFamily: "'Nunito', sans-serif", fontSize: 14, fontWeight: 700, color: "#2D2D2D", margin: "16px 0 10px" }}>📋 This Month's Jobs</h3>
       {(() => {
         // Build a flat list of (job, dayInfo) for this month
         const entries = [];
@@ -1998,9 +2361,9 @@ function CalendarView({ data, openJob }) {
               <div>
                 <div style={{ fontWeight: 700, fontSize: 13 }}>
                   {entry.job.clientName}
-                  {entry.totalDays > 1 && <span style={{ fontSize: 10, color: "#FF1493", fontWeight: 600, marginLeft: 6 }}>Day {entry.dayIndex + 1}/{entry.totalDays}</span>}
+                  {entry.totalDays > 1 && <span style={{ fontSize: 10, color: "#FF3CAC", fontWeight: 600, marginLeft: 6 }}>Day {entry.dayIndex + 1}/{entry.totalDays}</span>}
                 </div>
-                <div style={{ fontSize: 11, color: "#888" }}>
+                <div style={{ fontSize: 11, color: "#6B6B6B" }}>
                   {getJobEmojis(entry.job.spaces)} {getJobSummary(entry.job.spaces)} • {formatDate(entry.dayInfo?.date || entry.job.scheduledDate)}
                   {entry.dayInfo?.startTime ? ` • ${entry.dayInfo.startTime}` : ""}
                   {entry.dayInfo?.hours ? ` • ${entry.dayInfo.hours}h` : ""}
@@ -2040,20 +2403,23 @@ function Analytics({ data }) {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-      <h2 style={{ fontFamily: "'Sora', sans-serif", fontSize: 22, fontWeight: 800, margin: 0 }}>📊 Your Stats</h2>
+      <div style={{ position: "relative" }}>
+        <h2 style={{ fontFamily: "'Nunito', sans-serif", fontSize: 22, fontWeight: 900, margin: 0, color: "#2D2D2D" }}>📊 Your Stats</h2>
+        <div style={{ position: "absolute", top: -4, right: 0, fontSize: 12, opacity: 0.25, animation: "sparkle 2.5s ease-in-out infinite" }}>✨</div>
+      </div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
         {[
-          { label: "Total Revenue", value: formatCurrency(totalRevenue), emoji: "💰", color: "#34D399" },
-          { label: "Total Hours", value: `${Math.round(totalHours * 10) / 10}h`, emoji: "⏱️", color: "#60A5FA" },
-          { label: "Jobs Done", value: completed.length, emoji: "✅", color: "#FF69B4" },
-          { label: "Spaces Done", value: totalSpaces, emoji: "🏠", color: "#FF1493" },
+          { label: "Total Revenue", value: formatCurrency(totalRevenue), emoji: "💰", color: "#FF3CAC" },
+          { label: "Total Hours", value: `${Math.round(totalHours * 10) / 10}h`, emoji: "⏱️", color: "#A855F7" },
+          { label: "Jobs Done", value: completed.length, emoji: "✅", color: "#10B981" },
+          { label: "Spaces Done", value: totalSpaces, emoji: "🏠", color: "#FF3CAC" },
           { label: "Avg Rating", value: avgRating ? `${avgRating.toFixed(1)} ⭐` : "—", emoji: "🌟", color: "#F59E0B" },
-          { label: "Avg Accuracy", value: avgDiff ? `±${avgDiff.toFixed(1)}h` : "—", emoji: "🎯", color: "#E91E8B" },
-        ].map((s) => (
-          <Card key={s.label} style={{ padding: 14, textAlign: "center" }}>
-            <div style={{ fontSize: 22 }}>{s.emoji}</div>
-            <div style={{ fontFamily: "'Sora', sans-serif", fontSize: 18, fontWeight: 800, color: s.color }}>{s.value}</div>
-            <div style={{ fontSize: 11, color: "#999", fontWeight: 600 }}>{s.label}</div>
+          { label: "Avg Accuracy", value: avgDiff ? `±${avgDiff.toFixed(1)}h` : "—", emoji: "🎯", color: "#FF0080" },
+        ].map((s, i) => (
+          <Card key={s.label} style={{ padding: 16, textAlign: "center", animationDelay: `${i * 0.06}s` }}>
+            <div style={{ fontSize: 24, marginBottom: 4 }}>{s.emoji}</div>
+            <div style={{ fontFamily: "'Nunito', sans-serif", fontSize: 20, fontWeight: 900, color: s.color }}>{s.value}</div>
+            <div style={{ fontSize: 11, color: "#6B6B6B", fontWeight: 600 }}>{s.label}</div>
           </Card>
         ))}
       </div>
@@ -2061,7 +2427,7 @@ function Analytics({ data }) {
       {/* Accuracy */}
       {estimateAccuracy.length > 0 && (
         <Card>
-          <h3 style={{ fontFamily: "'Sora', sans-serif", fontSize: 14, fontWeight: 700, margin: "0 0 10px" }}>🎯 Estimate Accuracy</h3>
+          <h3 style={{ fontFamily: "'Nunito', sans-serif", fontSize: 14, fontWeight: 700, margin: "0 0 10px" }}>🎯 Estimate Accuracy</h3>
           {estimateAccuracy.map(j => (
             <div key={j.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "6px 0", borderBottom: "1px solid #F3F4F6", fontSize: 12 }}>
               <span style={{ fontWeight: 600 }}>{j.clientName}</span>
@@ -2077,7 +2443,7 @@ function Analytics({ data }) {
       {/* Revenue by space type */}
       {Object.keys(revenueByType).length > 0 && (
         <Card>
-          <h3 style={{ fontFamily: "'Sora', sans-serif", fontSize: 14, fontWeight: 700, margin: "0 0 10px" }}>💎 Revenue by Space Type</h3>
+          <h3 style={{ fontFamily: "'Nunito', sans-serif", fontSize: 14, fontWeight: 700, margin: "0 0 10px" }}>💎 Revenue by Space Type</h3>
           {Object.entries(revenueByType).sort((a, b) => b[1] - a[1]).map(([type, amount]) => {
             const pct = totalRevenue > 0 ? (amount / totalRevenue) * 100 : 0;
             const emoji = SPACE_TYPES.find(t => t.label === type)?.emoji || "📦";
@@ -2085,10 +2451,10 @@ function Analytics({ data }) {
               <div key={type} style={{ marginBottom: 10 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 4 }}>
                   <span style={{ fontWeight: 600 }}>{emoji} {type}</span>
-                  <span style={{ fontWeight: 700, color: "#D6006E" }}>{formatCurrency(amount)}</span>
+                  <span style={{ fontWeight: 700, color: "#FF0080" }}>{formatCurrency(amount)}</span>
                 </div>
-                <div style={{ height: 8, borderRadius: 4, background: "#FFE4F0", overflow: "hidden" }}>
-                  <div style={{ height: "100%", borderRadius: 4, background: "linear-gradient(90deg, #FF1493, #FF69B4)", width: `${Math.min(pct, 100)}%`, transition: "width 0.5s" }} />
+                <div style={{ height: 8, borderRadius: 4, background: "#FFE0F0", overflow: "hidden" }}>
+                  <div style={{ height: "100%", borderRadius: 4, background: "linear-gradient(90deg, #FF3CAC, #FF0080)", width: `${Math.min(pct, 100)}%`, transition: "width 0.5s" }} />
                 </div>
               </div>
             );
@@ -2097,18 +2463,26 @@ function Analytics({ data }) {
       )}
 
       {/* Rate Analysis */}
-      <Card>
-        <h3 style={{ fontFamily: "'Sora', sans-serif", fontSize: 14, fontWeight: 700, margin: "0 0 10px" }}>💡 Rate Analysis</h3>
-        <div style={{ fontSize: 13, color: "#666", lineHeight: 1.6 }}>
-          <p style={{ margin: "0 0 8px" }}>Current rate: <strong style={{ color: "#D6006E" }}>{formatCurrency(data.settings.hourlyRate)}/hr</strong></p>
+      <Card style={{ background: "linear-gradient(135deg, #FFD6C0, #FFE8F0, #E8C5F5)", border: "none", position: "relative", overflow: "hidden" }}>
+        {/* Decorative mini bar chart SVG */}
+        <svg style={{ position: "absolute", top: 12, right: 16, opacity: 0.12 }} width="60" height="50" viewBox="0 0 60 50" fill="none">
+          <rect x="2" y="30" width="10" height="20" rx="3" fill="#FF3CAC"/>
+          <rect x="16" y="18" width="10" height="32" rx="3" fill="#FF0080"/>
+          <rect x="30" y="10" width="10" height="40" rx="3" fill="#FF3CAC"/>
+          <rect x="44" y="22" width="10" height="28" rx="3" fill="#E040FB"/>
+          <path d="M7 28l14-10 14-6 14 10" stroke="#FF0080" strokeWidth="2" strokeLinecap="round" fill="none" opacity="0.5"/>
+        </svg>
+        <h3 style={{ fontFamily: "'Nunito', sans-serif", fontSize: 15, fontWeight: 800, margin: "0 0 10px", color: "#2D2D2D" }}>💡 Rate Analysis</h3>
+        <div style={{ fontSize: 13, color: "#2D2D2D", lineHeight: 1.6 }}>
+          <p style={{ margin: "0 0 8px" }}>Current rate: <strong style={{ color: "#FF0080", fontSize: 17 }}>{formatCurrency(data.settings.hourlyRate)}/hr</strong></p>
           {totalHours > 0 && <p style={{ margin: "0 0 8px" }}>Effective rate: <strong style={{ color: totalRevenue / totalHours >= data.settings.hourlyRate ? "#059669" : "#DC2626" }}>{formatCurrency(totalRevenue / totalHours)}/hr</strong></p>}
-          {avgDiff > 1 && <p style={{ margin: 0, background: "#FFF0F5", padding: 8, borderRadius: 8, fontSize: 12 }}>💡 Your estimates are off by {avgDiff.toFixed(1)}h on average. Consider adjusting base times!</p>}
+          {avgDiff > 1 && <p style={{ margin: 0, background: "rgba(255,255,255,0.6)", padding: "8px 12px", borderRadius: 10, fontSize: 12, fontWeight: 600 }}>💡 Your estimates are off by {avgDiff.toFixed(1)}h on average. Consider adjusting base times!</p>}
         </div>
       </Card>
 
       {/* Feedback */}
       <Card>
-        <h3 style={{ fontFamily: "'Sora', sans-serif", fontSize: 14, fontWeight: 700, margin: "0 0 10px" }}>💬 Client Feedback</h3>
+        <h3 style={{ fontFamily: "'Nunito', sans-serif", fontSize: 14, fontWeight: 700, margin: "0 0 10px" }}>💬 Client Feedback</h3>
         {completed.filter(j => j.feedback).length > 0 ? (
           completed.filter(j => j.feedback).map(j => (
             <div key={j.id} style={{ padding: "8px 0", borderBottom: "1px solid #F3F4F6" }}>
@@ -2116,11 +2490,11 @@ function Analytics({ data }) {
                 <span style={{ fontWeight: 700, fontSize: 13 }}>{j.clientName}</span>
                 <span style={{ fontSize: 12 }}>{"⭐".repeat(j.feedback.rating)}</span>
               </div>
-              {j.feedback.text && <p style={{ fontSize: 12, color: "#666", margin: 0, fontStyle: "italic" }}>"{j.feedback.text}"</p>}
+              {j.feedback.text && <p style={{ fontSize: 12, color: "#6B6B6B", margin: 0, fontStyle: "italic" }}>"{j.feedback.text}"</p>}
             </div>
           ))
         ) : (
-          <p style={{ textAlign: "center", color: "#888", fontSize: 13 }}>No feedback yet! Complete jobs to collect reviews ✨</p>
+          <p style={{ textAlign: "center", color: "#6B6B6B", fontSize: 13 }}>No feedback yet! Complete jobs to collect reviews ✨</p>
         )}
       </Card>
     </div>
@@ -2204,21 +2578,21 @@ function Settings({ settings, updateSettings, showToast, dbConnected, setDbConne
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-      <h2 style={{ fontFamily: "'Sora', sans-serif", fontSize: 22, fontWeight: 800, margin: 0 }}>⚙️ Settings</h2>
+      <h2 style={{ fontFamily: "'Nunito', sans-serif", fontSize: 22, fontWeight: 900, margin: 0, color: "#2D2D2D" }}>⚙️ Settings</h2>
 
       {/* Database Setup */}
       <Card>
-        <h3 style={{ fontFamily: "'Sora', sans-serif", fontSize: 14, fontWeight: 700, margin: "0 0 10px" }}>☁️ Database (Supabase)</h3>
+        <h3 style={{ fontFamily: "'Nunito', sans-serif", fontSize: 15, fontWeight: 800, margin: "0 0 10px", color: "#2D2D2D" }}>☁️ Database (Supabase)</h3>
 
         {dbConnected ? (
-          <div style={{ background: "#ECFDF5", borderRadius: 10, padding: 10, marginBottom: 12, fontSize: 12, color: "#059669", fontWeight: 600, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div style={{ background: "linear-gradient(135deg, #B8F0E0, #D1FAE5)", borderRadius: 14, padding: 12, marginBottom: 12, fontSize: 12, color: "#059669", fontWeight: 700, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <span>✅ Connected — data syncs automatically!</span>
-            <button onClick={forceSync} disabled={syncing} style={{ background: "none", border: "1px solid #059669", borderRadius: 8, padding: "3px 10px", color: "#059669", fontSize: 11, fontWeight: 600, cursor: "pointer", opacity: syncing ? 0.5 : 1 }}>
+            <button onClick={forceSync} disabled={syncing} style={{ background: "#059669", border: "none", borderRadius: 14, padding: "4px 12px", color: "#fff", fontSize: 11, fontWeight: 700, cursor: "pointer", opacity: syncing ? 0.5 : 1, fontFamily: "'Nunito', sans-serif" }}>
               {syncing ? "⏳..." : "🔄 Sync"}
             </button>
           </div>
         ) : (
-          <div style={{ background: "#FFF3E0", borderRadius: 10, padding: 10, marginBottom: 12, fontSize: 12, color: "#E65100", fontWeight: 600 }}>
+          <div style={{ background: "#FFD6C0", borderRadius: 14, padding: 12, marginBottom: 12, fontSize: 12, color: "#E65100", fontWeight: 600 }}>
             ⚠️ No database — data only saved locally in this browser
           </div>
         )}
@@ -2232,15 +2606,15 @@ function Settings({ settings, updateSettings, showToast, dbConnected, setDbConne
           </GradientButton>
         </div>
 
-        <button onClick={() => setShowDbGuide(!showDbGuide)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 12, fontWeight: 600, color: "#FF69B4", padding: 0 }}>
+        <button onClick={() => setShowDbGuide(!showDbGuide)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 12, fontWeight: 600, color: "#FF0080", padding: 0 }}>
           {showDbGuide ? "▲ Hide setup guide" : "📖 How to set up Supabase (free, 5 min)"}
         </button>
 
         {showDbGuide && (
-          <div style={{ background: "#FFF5F8", border: "1.5px solid #FFD6E8", borderRadius: 12, padding: 14, marginTop: 8, fontSize: 12, color: "#555", lineHeight: 1.8 }}>
-            <div style={{ fontWeight: 700, color: "#D6006E", marginBottom: 6, fontSize: 13 }}>🚀 Free Supabase Setup (500MB database)</div>
+          <div style={{ background: "#FFF5F9", border: "1.5px solid #FFB3D1", borderRadius: 12, padding: 14, marginTop: 8, fontSize: 12, color: "#555", lineHeight: 1.8 }}>
+            <div style={{ fontWeight: 700, color: "#FF0080", marginBottom: 6, fontSize: 13 }}>🚀 Free Supabase Setup (500MB database)</div>
             <div style={{ marginBottom: 8 }}>
-              <strong>Step 1:</strong> Go to <span style={{ color: "#D6006E", fontWeight: 600 }}>supabase.com</span> → Sign up free → "New Project"
+              <strong>Step 1:</strong> Go to <span style={{ color: "#FF0080", fontWeight: 600 }}>supabase.com</span> → Sign up free → "New Project"
             </div>
             <div style={{ marginBottom: 8 }}>
               <strong>Step 2:</strong> Name it "sparklespace", set a password, choose a region → Create
@@ -2288,7 +2662,7 @@ CREATE POLICY "Allow all" ON photo_refs FOR ALL USING (true) WITH CHECK (true);`
             <div style={{ marginBottom: 8 }}>
               <strong>Step 4:</strong> Go to <strong>Settings → API</strong> → Copy <strong>Project URL</strong> and <strong>anon public</strong> key
             </div>
-            <div style={{ background: "#ECFDF5", borderRadius: 8, padding: 8, fontWeight: 600, color: "#059669" }}>
+            <div style={{ background: "#B8F0E0", borderRadius: 8, padding: 8, fontWeight: 600, color: "#059669" }}>
               ✅ Paste both above and click "Connect & Test"!
             </div>
           </div>
@@ -2297,28 +2671,28 @@ CREATE POLICY "Allow all" ON photo_refs FOR ALL USING (true) WITH CHECK (true);`
 
       {/* Google Drive Photos */}
       <Card>
-        <h3 style={{ fontFamily: "'Sora', sans-serif", fontSize: 14, fontWeight: 700, margin: "0 0 10px" }}>📁 Google Drive (Photo Storage)</h3>
-        <div style={{ fontSize: 12, color: "#666", marginBottom: 12, lineHeight: 1.5 }}>
+        <h3 style={{ fontFamily: "'Nunito', sans-serif", fontSize: 14, fontWeight: 700, margin: "0 0 10px" }}>📁 Google Drive (Photo Storage)</h3>
+        <div style={{ fontSize: 12, color: "#6B6B6B", marginBottom: 12, lineHeight: 1.5 }}>
           Upload before/after photos to a Google Drive folder. The app stores the photo filename in the database so you can find it later.
         </div>
         <Input label="Google Drive Folder URL" placeholder="https://drive.google.com/drive/folders/..." value={gdriveFolderUrl} onChange={(e) => setGdriveFolderUrl(e.target.value)} />
         <Input label="Folder ID (auto-extracted)" placeholder="Auto-fills from URL above" value={gdriveFolderId} onChange={(e) => setGdriveFolderId(e.target.value)} />
         <GradientButton onClick={saveGDriveSettings}>💾 Save Drive Settings</GradientButton>
-        <div style={{ fontSize: 11, color: "#888", marginTop: 8, lineHeight: 1.5 }}>
+        <div style={{ fontSize: 11, color: "#6B6B6B", marginTop: 8, lineHeight: 1.5 }}>
           📌 Create a folder in Google Drive called "SparkleSpace Photos" → Right-click → "Share" → Copy link → Paste above. Photos you take in the app will be named with the job/client info for easy lookup.
         </div>
       </Card>
       
       {/* Email Setup */}
       <Card>
-        <h3 style={{ fontFamily: "'Sora', sans-serif", fontSize: 14, fontWeight: 700, margin: "0 0 10px" }}>📧 Email Service (EmailJS)</h3>
+        <h3 style={{ fontFamily: "'Nunito', sans-serif", fontSize: 14, fontWeight: 700, margin: "0 0 10px" }}>📧 Email Service (EmailJS)</h3>
         
         {(settings.emailjsPublicKey || DEFAULT_EMAILJS.publicKey) ? (
-          <div style={{ background: "#ECFDF5", borderRadius: 10, padding: 10, marginBottom: 12, fontSize: 12, color: "#059669", fontWeight: 600 }}>
+          <div style={{ background: "#B8F0E0", borderRadius: 14, padding: 12, marginBottom: 12, fontSize: 12, color: "#059669", fontWeight: 600 }}>
             ✅ Email is configured and ready to send!
           </div>
         ) : (
-          <div style={{ background: "#FFF3E0", borderRadius: 10, padding: 10, marginBottom: 12, fontSize: 12, color: "#E65100", fontWeight: 600 }}>
+          <div style={{ background: "#FFD6C0", borderRadius: 14, padding: 12, marginBottom: 12, fontSize: 12, color: "#E65100", fontWeight: 600 }}>
             ⚠️ Set up EmailJS to send emails directly to clients
           </div>
         )}
@@ -2336,15 +2710,15 @@ CREATE POLICY "Allow all" ON photo_refs FOR ALL USING (true) WITH CHECK (true);`
           )}
         </div>
 
-        <button onClick={() => setShowEmailGuide(!showEmailGuide)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 12, fontWeight: 600, color: "#FF69B4", padding: 0 }}>
+        <button onClick={() => setShowEmailGuide(!showEmailGuide)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 12, fontWeight: 600, color: "#FF0080", padding: 0 }}>
           {showEmailGuide ? "▲ Hide setup guide" : "📖 How to set up EmailJS (free, 5 min)"}
         </button>
 
         {showEmailGuide && (
-          <div style={{ background: "#FFF5F8", border: "1.5px solid #FFD6E8", borderRadius: 12, padding: 14, marginTop: 8, fontSize: 12, color: "#555", lineHeight: 1.8 }}>
-            <div style={{ fontWeight: 700, color: "#D6006E", marginBottom: 6, fontSize: 13 }}>🚀 Free EmailJS Setup (200 emails/mo)</div>
+          <div style={{ background: "#FFF5F9", border: "1.5px solid #FFB3D1", borderRadius: 12, padding: 14, marginTop: 8, fontSize: 12, color: "#555", lineHeight: 1.8 }}>
+            <div style={{ fontWeight: 700, color: "#FF0080", marginBottom: 6, fontSize: 13 }}>🚀 Free EmailJS Setup (200 emails/mo)</div>
             <div style={{ marginBottom: 8 }}>
-              <strong>Step 1:</strong> Go to <span style={{ color: "#D6006E", fontWeight: 600 }}>emailjs.com</span> → Sign up free
+              <strong>Step 1:</strong> Go to <span style={{ color: "#FF0080", fontWeight: 600 }}>emailjs.com</span> → Sign up free
             </div>
             <div style={{ marginBottom: 8 }}>
               <strong>Step 2:</strong> Click "Email Services" → "Add New Service" → Choose Gmail/Outlook/etc → Connect your email account → Copy the <strong>Service ID</strong>
@@ -2367,7 +2741,7 @@ Content (HTML): {{{message_html}}}`}
             <div style={{ marginBottom: 8 }}>
               <strong>Step 5:</strong> Go to "Account" → Copy your <strong>Public Key</strong>
             </div>
-            <div style={{ background: "#ECFDF5", borderRadius: 8, padding: 8, fontWeight: 600, color: "#059669" }}>
+            <div style={{ background: "#B8F0E0", borderRadius: 8, padding: 8, fontWeight: 600, color: "#059669" }}>
               ✅ Paste all 3 IDs above, save, and hit "Test Email"!
             </div>
           </div>
@@ -2375,28 +2749,28 @@ Content (HTML): {{{message_html}}}`}
       </Card>
 
       <Card>
-        <h3 style={{ fontFamily: "'Sora', sans-serif", fontSize: 14, fontWeight: 700, margin: "0 0 10px" }}>💰 Pricing</h3>
+        <h3 style={{ fontFamily: "'Nunito', sans-serif", fontSize: 14, fontWeight: 700, margin: "0 0 10px" }}>💰 Pricing</h3>
         <Input label="Hourly Rate ($)" type="number" min="1" step="0.50" value={settings.hourlyRate} onChange={(e) => updateSettings({ hourlyRate: parseFloat(e.target.value) || DEFAULT_RATE })} />
-        <div style={{ fontSize: 11, color: "#888", marginTop: -8, marginBottom: 12 }}>WA sales tax (10.25%) auto-applies for non-cash payments</div>
+        <div style={{ fontSize: 11, color: "#6B6B6B", marginTop: -8, marginBottom: 12 }}>WA sales tax (10.25%) auto-applies for non-cash payments</div>
       </Card>
       <Card>
-        <h3 style={{ fontFamily: "'Sora', sans-serif", fontSize: 14, fontWeight: 700, margin: "0 0 10px" }}>💳 Payment Integration</h3>
+        <h3 style={{ fontFamily: "'Nunito', sans-serif", fontSize: 14, fontWeight: 700, margin: "0 0 10px" }}>💳 Payment Integration</h3>
         <Input label="Stripe Publishable Key" placeholder="pk_live_..." value={stripeKey} onChange={(e) => setStripeKey(e.target.value)} />
         <GradientButton onClick={() => { updateSettings({ stripeKey }); showToast("Stripe key saved! 💳"); }}>Save Stripe Key</GradientButton>
-        <div style={{ fontSize: 11, color: "#888", marginTop: 8, lineHeight: 1.5 }}>🔗 Create a free Stripe account at stripe.com to accept card payments. Venmo & Zelle tracked manually.</div>
+        <div style={{ fontSize: 11, color: "#6B6B6B", marginTop: 8, lineHeight: 1.5 }}>🔗 Create a free Stripe account at stripe.com to accept card payments. Venmo & Zelle tracked manually.</div>
       </Card>
       <Card>
-        <h3 style={{ fontFamily: "'Sora', sans-serif", fontSize: 14, fontWeight: 700, margin: "0 0 10px" }}>ℹ️ About SparkleSpace</h3>
-        <div style={{ fontSize: 13, color: "#666", lineHeight: 1.6 }}>
+        <h3 style={{ fontFamily: "'Nunito', sans-serif", fontSize: 14, fontWeight: 700, margin: "0 0 10px" }}>ℹ️ About SparkleSpace</h3>
+        <div style={{ fontSize: 13, color: "#6B6B6B", lineHeight: 1.6 }}>
           <p style={{ margin: "0 0 8px" }}>✨ <strong>SparkleSpace by Thea</strong></p>
           <p style={{ margin: "0 0 8px" }}>Your organizing business management app! Track assessments, schedule jobs, manage clients, handle payments, and grow your business. 🌟</p>
-          <p style={{ margin: 0, fontSize: 11, color: "#999" }}>v1.5 • Supabase + EmailJS • Made with 💜</p>
+          <p style={{ margin: 0, fontSize: 11, color: "#6B6B6B" }}>v1.8 • Manual Time + Edit Contact + Combined Invoice • Made with 💖</p>
         </div>
       </Card>
       <Card>
-        <h3 style={{ fontFamily: "'Sora', sans-serif", fontSize: 14, fontWeight: 700, margin: "0 0 10px" }}>🗑️ Data</h3>
+        <h3 style={{ fontFamily: "'Nunito', sans-serif", fontSize: 14, fontWeight: 700, margin: "0 0 10px" }}>🗑️ Data</h3>
         <GradientButton variant="danger" onClick={() => { if (confirm("Are you sure? This will delete ALL local data!")) { localStorage.removeItem(STORAGE_KEY); localStorage.removeItem(SUPABASE_CONFIG_KEY); localStorage.removeItem(GDRIVE_CONFIG_KEY); window.location.reload(); } }}>Reset All Local Data</GradientButton>
-        <div style={{ fontSize: 11, color: "#888", marginTop: 8 }}>⚠️ This clears local cache. Database data (if connected) is preserved.</div>
+        <div style={{ fontSize: 11, color: "#6B6B6B", marginTop: 8 }}>⚠️ This clears local cache. Database data (if connected) is preserved.</div>
       </Card>
     </div>
   );
