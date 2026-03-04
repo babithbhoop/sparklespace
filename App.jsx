@@ -438,7 +438,7 @@ export default function SparkleSpaceApp() {
       <main style={{ maxWidth: 600, margin: "0 auto", padding: "16px 16px 100px" }}>
         {currentView === "dashboard" && <Dashboard data={data} setCurrentView={setCurrentView} openJob={openJob} setShowNewJob={setShowNewJob} />}
         {currentView === "jobs" && <JobsList data={data} openJob={openJob} showNewJob={showNewJob} setShowNewJob={setShowNewJob} addJob={addJob} updateJob={updateJob} settings={data.settings} showToast={showToast} />}
-        {currentView === "job-detail" && selectedJob && <JobDetail job={data.jobs.find(j => j.id === selectedJob)} updateJob={updateJob} deleteJob={deleteJob} settings={data.settings} showToast={showToast} setCurrentView={setCurrentView} />}
+        {currentView === "job-detail" && selectedJob && <JobDetail job={data.jobs.find(j => j.id === selectedJob)} allJobs={data.jobs} updateJob={updateJob} deleteJob={deleteJob} settings={data.settings} showToast={showToast} setCurrentView={setCurrentView} />}
         {currentView === "calendar" && <CalendarView data={data} openJob={openJob} />}
         {currentView === "analytics" && <Analytics data={data} />}
         {currentView === "settings" && <Settings settings={data.settings} updateSettings={updateSettings} showToast={showToast} dbConnected={dbConnected} setDbConnected={setDbConnected} forceSync={forceSync} syncing={syncing} />}
@@ -1424,12 +1424,26 @@ function NewJobForm({ onClose, onSave, settings }) {
 }
 
 // ─── Job Detail ───
-function JobDetail({ job, updateJob, deleteJob, settings, showToast, setCurrentView }) {
+function JobDetail({ job, allJobs, updateJob, deleteJob, settings, showToast, setCurrentView }) {
   const [showFeedback, setShowFeedback] = useState(false);
   const [feedbackText, setFeedbackText] = useState("");
   const [feedbackRating, setFeedbackRating] = useState(5);
   const [expandedSpace, setExpandedSpace] = useState(-1);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  // Manual time entry
+  const [showManualTime, setShowManualTime] = useState(false);
+  const [manualStartDate, setManualStartDate] = useState("");
+  const [manualStartTime, setManualStartTime] = useState("");
+  const [manualEndDate, setManualEndDate] = useState("");
+  const [manualEndTime, setManualEndTime] = useState("");
+  // Edit contact
+  const [showEditContact, setShowEditContact] = useState(false);
+  const [editName, setEditName] = useState("");
+  const [editPhone, setEditPhone] = useState("");
+  const [editEmail, setEditEmail] = useState("");
+  const [editAddress, setEditAddress] = useState("");
+  // Combined invoice
+  const [showCombinedInvoice, setShowCombinedInvoice] = useState(false);
 
   if (!job) return <Card><p>Job not found</p></Card>;
 
@@ -1485,6 +1499,75 @@ function JobDetail({ job, updateJob, deleteJob, settings, showToast, setCurrentV
   const handleDeleteJob = () => {
     deleteJob(job.id);
     setCurrentView("jobs");
+  };
+
+  // Manual time entry — save start/end times manually
+  const saveManualTime = () => {
+    if (!manualStartDate || !manualStartTime) return showToast("Enter at least a start date & time", "error");
+    const startISO = new Date(`${manualStartDate}T${manualStartTime}`).toISOString();
+    const updates = { actualStartTime: startISO, status: job.status === "scheduled" ? "in-progress" : job.status };
+    if (manualEndDate && manualEndTime) {
+      const endISO = new Date(`${manualEndDate}T${manualEndTime}`).toISOString();
+      const hours = Math.round((new Date(endISO) - new Date(startISO)) / 3600000 * 10) / 10;
+      if (hours <= 0) return showToast("End time must be after start time", "error");
+      updates.actualEndTime = endISO;
+      updates.actualHours = hours;
+      updates.status = "completed";
+      updates.completedAt = endISO;
+    }
+    updateJob(job.id, updates);
+    setShowManualTime(false);
+    showToast(updates.actualEndTime ? `Logged ${updates.actualHours}h ✅` : "Start time saved! ⏱️");
+  };
+
+  // Open edit contact modal with current values
+  const openEditContact = () => {
+    setEditName(job.clientName || "");
+    setEditPhone(job.clientPhone || "");
+    setEditEmail(job.clientEmail || "");
+    setEditAddress(job.clientAddress || "");
+    setShowEditContact(true);
+  };
+
+  const saveContact = () => {
+    if (!editName.trim()) return showToast("Name is required", "error");
+    updateJob(job.id, { clientName: editName.trim(), clientPhone: editPhone.trim(), clientEmail: editEmail.trim(), clientAddress: editAddress.trim() });
+    setShowEditContact(false);
+    showToast("Contact updated! ✏️");
+  };
+
+  // Combined invoice — find same-client completed jobs
+  const sameClientJobs = (allJobs || []).filter(j =>
+    j.clientName?.toLowerCase().trim() === job.clientName?.toLowerCase().trim() &&
+    j.id !== job.id &&
+    ["completed", "invoiced"].includes(j.status)
+  );
+
+  const generateCombinedInvoice = (selectedJobIds) => {
+    const jobsToInvoice = [job, ...(allJobs || []).filter(j => selectedJobIds.includes(j.id))];
+    let totalAmount = 0;
+    jobsToInvoice.forEach(j => {
+      let base = (j.actualHours || j.estimatedHours || 0) * settings.hourlyRate;
+      if (j.discountType === "percent") base -= base * ((j.discountValue || 0) / 100);
+      else if (j.discountType === "dollar") base -= (j.discountValue || 0);
+      if (j.paymentMethod !== "cash") base += base * WA_TAX_RATE;
+      totalAmount += Math.max(0, base);
+    });
+    // Mark all as invoiced with combined reference
+    const combinedRef = generateId();
+    jobsToInvoice.forEach(j => {
+      updateJob(j.id, {
+        invoiceAmount: null,
+        combinedInvoiceRef: combinedRef,
+        combinedInvoiceTotal: totalAmount,
+        combinedInvoiceJobs: jobsToInvoice.map(jj => jj.id),
+        status: "invoiced",
+      });
+    });
+    // Set the total on the current job
+    updateJob(job.id, { invoiceAmount: totalAmount });
+    setShowCombinedInvoice(false);
+    showToast(`Combined invoice: ${formatCurrency(totalAmount)} for ${jobsToInvoice.length} jobs! 🧾`);
   };
 
   const generateInvoice = () => {
@@ -1710,8 +1793,12 @@ function JobDetail({ job, updateJob, deleteJob, settings, showToast, setCurrentV
             <h2 style={{ fontFamily: "'Nunito', sans-serif", fontSize: 22, fontWeight: 900, margin: "0 0 4px", color: "#2D2D2D" }}>{job.clientName}</h2>
             <p style={{ fontSize: 13, color: "#6B6B6B", margin: 0 }}>{getJobEmojis(spaces)} {getJobSummary(spaces)} • {job.clientAddress || "No address"}</p>
             {job.clientPhone && <p style={{ fontSize: 12, color: "#FF3CAC", margin: "4px 0 0", fontWeight: 700 }}>📱 {job.clientPhone}</p>}
+            {job.clientEmail && <p style={{ fontSize: 11, color: "#6B6B6B", margin: "2px 0 0" }}>📧 {job.clientEmail}</p>}
           </div>
-          <StatusBadge status={job.status} />
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6 }}>
+            <StatusBadge status={job.status} />
+            <button onClick={openEditContact} style={{ background: "none", border: "1.5px solid #FFB3D1", borderRadius: 10, padding: "3px 10px", fontSize: 10, fontWeight: 700, color: "#FF0080", cursor: "pointer", fontFamily: "'Nunito', sans-serif" }}>✏️ Edit</button>
+          </div>
         </div>
         {/* Space chips */}
         {spaces.length > 0 && (
@@ -1887,6 +1974,9 @@ function JobDetail({ job, updateJob, deleteJob, settings, showToast, setCurrentV
                 🎉 Client confirmed! Ready to organize.
               </div>
               <GradientButton variant="success" onClick={startTimer}>⏱️ Start Timer</GradientButton>
+              <button onClick={() => setShowManualTime(true)} style={{ background: "none", border: "1.5px solid #FFB3D1", borderRadius: 14, padding: "10px", color: "#FF0080", fontWeight: 700, fontSize: 12, cursor: "pointer", width: "100%", fontFamily: "'Nunito', sans-serif" }}>
+                🕐 Enter Time Manually
+              </button>
             </>
           )}
 
@@ -1899,12 +1989,22 @@ function JobDetail({ job, updateJob, deleteJob, settings, showToast, setCurrentV
                 <TimerDisplay startTime={job.actualStartTime} />
               </div>
               <GradientButton variant="danger" onClick={stopTimer}>⏹️ Stop Timer</GradientButton>
+              <button onClick={() => { setManualStartDate(job.actualStartTime.split("T")[0]); setManualStartTime(new Date(job.actualStartTime).toTimeString().slice(0, 5)); setShowManualTime(true); }} style={{ background: "none", border: "1.5px solid #FFB3D1", borderRadius: 14, padding: "10px", color: "#FF0080", fontWeight: 700, fontSize: 12, cursor: "pointer", width: "100%", fontFamily: "'Nunito', sans-serif" }}>
+                🕐 Edit Start/End Time Manually
+              </button>
             </>
           )}
 
           {/* Step 7: Completed */}
           {job.status === "completed" && (
-            <GradientButton onClick={generateInvoice}>🧾 Generate Invoice</GradientButton>
+            <>
+              <GradientButton onClick={generateInvoice}>🧾 Generate Invoice</GradientButton>
+              {sameClientJobs.length > 0 && (
+                <button onClick={() => setShowCombinedInvoice(true)} style={{ background: "none", border: "1.5px solid #E8C5F5", borderRadius: 14, padding: "10px", color: "#6A1B9A", fontWeight: 700, fontSize: 12, cursor: "pointer", width: "100%", fontFamily: "'Nunito', sans-serif" }}>
+                  📋 Combined Invoice ({sameClientJobs.length + 1} jobs for {job.clientName})
+                </button>
+              )}
+            </>
           )}
 
           {/* Step 8: Invoiced */}
@@ -2013,6 +2113,149 @@ function JobDetail({ job, updateJob, deleteJob, settings, showToast, setCurrentV
           </Card>
         </div>
       )}
+
+      {/* Manual Time Entry Modal */}
+      {showManualTime && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: 20 }}>
+          <Card style={{ width: "100%", maxWidth: 400 }}>
+            <h3 style={{ fontFamily: "'Nunito', sans-serif", fontSize: 18, fontWeight: 800, margin: "0 0 4px" }}>🕐 Enter Time Manually</h3>
+            <p style={{ fontSize: 12, color: "#6B6B6B", margin: "0 0 14px", lineHeight: 1.5 }}>Set the actual start and end times for this job. Leave end time empty to just record the start.</p>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+              <Input label="Start Date *" type="date" value={manualStartDate} onChange={(e) => setManualStartDate(e.target.value)} />
+              <Input label="Start Time *" type="time" value={manualStartTime} onChange={(e) => setManualStartTime(e.target.value)} />
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+              <Input label="End Date" type="date" value={manualEndDate} onChange={(e) => setManualEndDate(e.target.value)} />
+              <Input label="End Time" type="time" value={manualEndTime} onChange={(e) => setManualEndTime(e.target.value)} />
+            </div>
+            {manualStartDate && manualStartTime && manualEndDate && manualEndTime && (() => {
+              const hrs = Math.round((new Date(`${manualEndDate}T${manualEndTime}`) - new Date(`${manualStartDate}T${manualStartTime}`)) / 3600000 * 10) / 10;
+              return hrs > 0 ? (
+                <div style={{ background: "#FFF5F9", borderRadius: 12, padding: 10, textAlign: "center", marginBottom: 8 }}>
+                  <span style={{ fontSize: 12, color: "#6B6B6B" }}>Total: </span>
+                  <span style={{ fontWeight: 800, color: "#FF0080", fontSize: 16 }}>{hrs}h</span>
+                  <span style={{ fontSize: 12, color: "#6B6B6B" }}> = {formatCurrency(hrs * settings.hourlyRate)}</span>
+                </div>
+              ) : null;
+            })()}
+            <div style={{ display: "flex", gap: 8 }}>
+              <GradientButton variant="secondary" onClick={() => setShowManualTime(false)} style={{ flex: 1 }}>Cancel</GradientButton>
+              <GradientButton onClick={saveManualTime} style={{ flex: 1 }}>💾 Save Time</GradientButton>
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {/* Edit Contact Modal */}
+      {showEditContact && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: 20 }}>
+          <Card style={{ width: "100%", maxWidth: 400 }}>
+            <h3 style={{ fontFamily: "'Nunito', sans-serif", fontSize: 18, fontWeight: 800, margin: "0 0 14px" }}>✏️ Edit Client Details</h3>
+            <Input label="Client Name *" value={editName} onChange={(e) => setEditName(e.target.value)} placeholder="Client name" />
+            <Input label="Phone" value={editPhone} onChange={(e) => setEditPhone(e.target.value)} placeholder="425-555-1234" type="tel" />
+            <Input label="Email" value={editEmail} onChange={(e) => setEditEmail(e.target.value)} placeholder="email@example.com" type="email" />
+            <Input label="Address" value={editAddress} onChange={(e) => setEditAddress(e.target.value)} placeholder="123 Main St" />
+            <div style={{ display: "flex", gap: 8 }}>
+              <GradientButton variant="secondary" onClick={() => setShowEditContact(false)} style={{ flex: 1 }}>Cancel</GradientButton>
+              <GradientButton onClick={saveContact} style={{ flex: 1 }}>💾 Save</GradientButton>
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {/* Combined Invoice Modal */}
+      {showCombinedInvoice && <CombinedInvoiceModal
+        currentJob={job}
+        sameClientJobs={sameClientJobs}
+        settings={settings}
+        onClose={() => setShowCombinedInvoice(false)}
+        onGenerate={generateCombinedInvoice}
+      />}
+    </div>
+  );
+}
+
+function CombinedInvoiceModal({ currentJob, sameClientJobs, settings, onClose, onGenerate }) {
+  const [selected, setSelected] = useState(sameClientJobs.map(j => j.id));
+  const toggle = (id) => setSelected(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+
+  const allJobs = [currentJob, ...sameClientJobs.filter(j => selected.includes(j.id))];
+  let totalAmount = 0;
+  const breakdown = allJobs.map(j => {
+    let base = (j.actualHours || j.estimatedHours || 0) * settings.hourlyRate;
+    if (j.discountType === "percent") base -= base * ((j.discountValue || 0) / 100);
+    else if (j.discountType === "dollar") base -= (j.discountValue || 0);
+    const preTax = Math.max(0, base);
+    const tax = j.paymentMethod !== "cash" ? preTax * WA_TAX_RATE : 0;
+    const total = preTax + tax;
+    totalAmount += total;
+    return { job: j, hours: j.actualHours || j.estimatedHours || 0, preTax, tax, total };
+  });
+
+  return (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: 20 }}>
+      <Card style={{ width: "100%", maxWidth: 420, maxHeight: "85vh", overflow: "auto" }}>
+        <h3 style={{ fontFamily: "'Nunito', sans-serif", fontSize: 18, fontWeight: 800, margin: "0 0 4px" }}>📋 Combined Invoice</h3>
+        <p style={{ fontSize: 12, color: "#6B6B6B", margin: "0 0 14px", lineHeight: 1.5 }}>Bill <strong>{currentJob.clientName}</strong> for multiple jobs in one invoice.</p>
+
+        {/* Current job (always included) */}
+        <div style={{ background: "#FFF5F9", borderRadius: 14, padding: 12, marginBottom: 8, border: "1.5px solid #FFB3D1" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "#2D2D2D" }}>✨ This Job (included)</div>
+              <div style={{ fontSize: 11, color: "#6B6B6B" }}>{getJobSummary(currentJob.spaces)} • {currentJob.actualHours || currentJob.estimatedHours}h</div>
+              {currentJob.scheduledDate && <div style={{ fontSize: 10, color: "#FF3CAC", fontWeight: 600 }}>📅 {formatDate(currentJob.scheduledDate)}</div>}
+            </div>
+            <div style={{ fontWeight: 800, color: "#FF0080", fontSize: 14 }}>{formatCurrency(breakdown[0]?.total || 0)}</div>
+          </div>
+        </div>
+
+        {/* Other same-client jobs */}
+        {sameClientJobs.length > 0 && (
+          <div style={{ fontSize: 11, fontWeight: 700, color: "#6B6B6B", marginBottom: 6 }}>Select additional jobs to include:</div>
+        )}
+        {sameClientJobs.map(j => {
+          const isSelected = selected.includes(j.id);
+          const bk = breakdown.find(b => b.job.id === j.id);
+          return (
+            <div key={j.id} onClick={() => toggle(j.id)} style={{ background: isSelected ? "#FFF5F9" : "#fff", borderRadius: 14, padding: 12, marginBottom: 6, border: isSelected ? "1.5px solid #FFB3D1" : "1.5px solid #E5E7EB", cursor: "pointer", transition: "all 0.2s" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                  <div style={{ width: 22, height: 22, borderRadius: 6, border: isSelected ? "2px solid #FF0080" : "2px solid #D1D5DB", background: isSelected ? "#FF0080" : "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, color: "#fff", fontWeight: 700, transition: "all 0.2s", flexShrink: 0 }}>
+                    {isSelected && "✓"}
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: "#2D2D2D" }}>{getJobSummary(j.spaces)} • {j.actualHours || j.estimatedHours}h</div>
+                    <div style={{ fontSize: 10, color: "#6B6B6B" }}>
+                      {j.scheduledDate ? formatDate(j.scheduledDate) : "No date"} • {j.status}
+                    </div>
+                  </div>
+                </div>
+                <div style={{ fontWeight: 700, color: isSelected ? "#FF0080" : "#999", fontSize: 13 }}>{bk ? formatCurrency(bk.total) : "—"}</div>
+              </div>
+            </div>
+          );
+        })}
+
+        {/* Total breakdown */}
+        <div style={{ background: "linear-gradient(135deg, #FFF5F9, #FFE0F0)", borderRadius: 14, padding: 14, marginTop: 8 }}>
+          {breakdown.map((b, i) => (
+            <div key={b.job.id} style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "#6B6B6B", padding: "3px 0", borderBottom: i < breakdown.length - 1 ? "1px solid rgba(255,60,172,0.1)" : "none" }}>
+              <span>{i === 0 ? "This job" : getJobSummary(b.job.spaces)} ({b.hours}h{b.tax > 0 ? " + tax" : ""})</span>
+              <span style={{ fontWeight: 600 }}>{formatCurrency(b.total)}</span>
+            </div>
+          ))}
+          <div style={{ display: "flex", justifyContent: "space-between", marginTop: 8, paddingTop: 8, borderTop: "2px solid #FFB3D1" }}>
+            <span style={{ fontWeight: 800, fontSize: 14, color: "#2D2D2D" }}>Total</span>
+            <span style={{ fontWeight: 900, fontSize: 18, color: "#FF0080" }}>{formatCurrency(totalAmount)}</span>
+          </div>
+        </div>
+
+        <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
+          <GradientButton variant="secondary" onClick={onClose} style={{ flex: 1 }}>Cancel</GradientButton>
+          <GradientButton onClick={() => onGenerate(selected)} style={{ flex: 1 }}>🧾 Generate Combined Invoice</GradientButton>
+        </div>
+      </Card>
     </div>
   );
 }
@@ -2521,7 +2764,7 @@ Content (HTML): {{{message_html}}}`}
         <div style={{ fontSize: 13, color: "#6B6B6B", lineHeight: 1.6 }}>
           <p style={{ margin: "0 0 8px" }}>✨ <strong>SparkleSpace by Thea</strong></p>
           <p style={{ margin: "0 0 8px" }}>Your organizing business management app! Track assessments, schedule jobs, manage clients, handle payments, and grow your business. 🌟</p>
-          <p style={{ margin: 0, fontSize: 11, color: "#6B6B6B" }}>v1.7 • Redesign + Camera + Cloud Sync • Made with 💖</p>
+          <p style={{ margin: 0, fontSize: 11, color: "#6B6B6B" }}>v1.8 • Manual Time + Edit Contact + Combined Invoice • Made with 💖</p>
         </div>
       </Card>
       <Card>
