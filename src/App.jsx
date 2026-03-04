@@ -1444,6 +1444,9 @@ function JobDetail({ job, allJobs, updateJob, deleteJob, settings, showToast, se
   const [editAddress, setEditAddress] = useState("");
   // Combined invoice
   const [showCombinedInvoice, setShowCombinedInvoice] = useState(false);
+  // Invoice preview (editable amount before submitting)
+  const [showInvoicePreview, setShowInvoicePreview] = useState(false);
+  const [invoiceEditAmount, setInvoiceEditAmount] = useState(0);
 
   if (!job) return <Card><p>Job not found</p></Card>;
 
@@ -1543,16 +1546,9 @@ function JobDetail({ job, allJobs, updateJob, deleteJob, settings, showToast, se
     ["completed", "invoiced"].includes(j.status)
   );
 
-  const generateCombinedInvoice = (selectedJobIds) => {
+  const generateCombinedInvoice = (selectedJobIds, overrideTotal) => {
     const jobsToInvoice = [job, ...(allJobs || []).filter(j => selectedJobIds.includes(j.id))];
-    let totalAmount = 0;
-    jobsToInvoice.forEach(j => {
-      let base = (j.actualHours || j.estimatedHours || 0) * settings.hourlyRate;
-      if (j.discountType === "percent") base -= base * ((j.discountValue || 0) / 100);
-      else if (j.discountType === "dollar") base -= (j.discountValue || 0);
-      if (j.paymentMethod !== "cash") base += base * WA_TAX_RATE;
-      totalAmount += Math.max(0, base);
-    });
+    const totalAmount = overrideTotal;
     // Mark all as invoiced with combined reference
     const combinedRef = generateId();
     jobsToInvoice.forEach(j => {
@@ -1570,12 +1566,18 @@ function JobDetail({ job, allJobs, updateJob, deleteJob, settings, showToast, se
     showToast(`Combined invoice: ${formatCurrency(totalAmount)} for ${jobsToInvoice.length} jobs! 🧾`);
   };
 
-  const generateInvoice = () => {
-    let base = (job.actualHours || job.estimatedHours) * settings.hourlyRate;
-    if (job.discountType === "percent") base -= base * (job.discountValue / 100);
-    else if (job.discountType === "dollar") base -= job.discountValue;
+  const openInvoicePreview = () => {
+    let base = (job.estimatedHours || 0) * settings.hourlyRate;
+    if (job.discountType === "percent") base -= base * ((job.discountValue || 0) / 100);
+    else if (job.discountType === "dollar") base -= (job.discountValue || 0);
     if (job.paymentMethod !== "cash") base += base * WA_TAX_RATE;
-    updateJob(job.id, { invoiceAmount: Math.max(0, base), status: "invoiced" });
+    setInvoiceEditAmount(Math.max(0, Math.round(base * 100) / 100));
+    setShowInvoicePreview(true);
+  };
+
+  const submitInvoice = () => {
+    updateJob(job.id, { invoiceAmount: invoiceEditAmount, status: "invoiced" });
+    setShowInvoicePreview(false);
     showToast("Invoice generated! 🧾");
   };
 
@@ -1998,7 +2000,7 @@ function JobDetail({ job, allJobs, updateJob, deleteJob, settings, showToast, se
           {/* Step 7: Completed */}
           {job.status === "completed" && (
             <>
-              <GradientButton onClick={generateInvoice}>🧾 Generate Invoice</GradientButton>
+              <GradientButton onClick={openInvoicePreview}>🧾 Generate Invoice</GradientButton>
               {sameClientJobs.length > 0 && (
                 <button onClick={() => setShowCombinedInvoice(true)} style={{ background: "none", border: "1.5px solid #E8C5F5", borderRadius: 14, padding: "10px", color: "#6A1B9A", fontWeight: 700, fontSize: 12, cursor: "pointer", width: "100%", fontFamily: "'Nunito', sans-serif" }}>
                   📋 Combined Invoice ({sameClientJobs.length + 1} jobs for {job.clientName})
@@ -2163,6 +2165,69 @@ function JobDetail({ job, allJobs, updateJob, deleteJob, settings, showToast, se
         </div>
       )}
 
+      {/* Invoice Preview Modal — editable amount before submitting */}
+      {showInvoicePreview && (() => {
+        const estBase = (job.estimatedHours || 0) * settings.hourlyRate;
+        const discount = job.discountType === "percent" ? estBase * ((job.discountValue || 0) / 100) : job.discountType === "dollar" ? (job.discountValue || 0) : 0;
+        const afterDiscount = Math.max(0, estBase - discount);
+        const tax = job.paymentMethod !== "cash" ? afterDiscount * WA_TAX_RATE : 0;
+        return (
+          <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: 20 }}>
+            <Card style={{ width: "100%", maxWidth: 400 }}>
+              <h3 style={{ fontFamily: "'Nunito', sans-serif", fontSize: 18, fontWeight: 800, margin: "0 0 4px" }}>🧾 Invoice Preview</h3>
+              <p style={{ fontSize: 12, color: "#6B6B6B", margin: "0 0 14px", lineHeight: 1.5 }}>Review the amount before sending. You can override it if needed.</p>
+
+              {/* Breakdown */}
+              <div style={{ background: "#FFF5F9", borderRadius: 14, padding: 14, marginBottom: 14 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "#6B6B6B", marginBottom: 4 }}>
+                  <span>Estimated hours</span>
+                  <span style={{ fontWeight: 700, color: "#2D2D2D" }}>{job.estimatedHours || 0}h × {formatCurrency(settings.hourlyRate)}</span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "#6B6B6B", marginBottom: 4 }}>
+                  <span>Subtotal</span>
+                  <span style={{ fontWeight: 600 }}>{formatCurrency(estBase)}</span>
+                </div>
+                {discount > 0 && (
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "#059669", marginBottom: 4 }}>
+                    <span>Discount ({job.discountType === "percent" ? `${job.discountValue}%` : formatCurrency(job.discountValue)})</span>
+                    <span style={{ fontWeight: 600 }}>-{formatCurrency(discount)}</span>
+                  </div>
+                )}
+                {tax > 0 && (
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "#6B6B6B", marginBottom: 4 }}>
+                    <span>WA Sales Tax (10.25%)</span>
+                    <span style={{ fontWeight: 600 }}>{formatCurrency(tax)}</span>
+                  </div>
+                )}
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "#6B6B6B", marginTop: 4, paddingTop: 6, borderTop: "1px solid #FFB3D1" }}>
+                  <span>Auto-calculated total</span>
+                  <span style={{ fontWeight: 700, color: "#FF0080" }}>{formatCurrency(afterDiscount + tax)}</span>
+                </div>
+                {job.actualHours && job.actualHours !== job.estimatedHours && (
+                  <div style={{ fontSize: 11, color: "#6B6B6B", marginTop: 8, background: "#fff", borderRadius: 8, padding: 8 }}>
+                    💡 Actual time was <strong>{job.actualHours}h</strong> (estimated {job.estimatedHours}h) — adjust the amount below if needed.
+                  </div>
+                )}
+              </div>
+
+              {/* Editable amount */}
+              <div style={{ marginBottom: 14 }}>
+                <label style={{ fontSize: 12, fontWeight: 700, color: "#2D2D2D", marginBottom: 4, display: "block" }}>💰 Invoice Amount (editable)</label>
+                <div style={{ position: "relative" }}>
+                  <span style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", fontSize: 16, fontWeight: 800, color: "#FF0080" }}>$</span>
+                  <input type="number" step="0.01" min="0" value={invoiceEditAmount} onChange={(e) => setInvoiceEditAmount(parseFloat(e.target.value) || 0)} style={{ width: "100%", padding: "14px 14px 14px 30px", borderRadius: 14, border: "2px solid #FFB3D1", fontSize: 20, fontWeight: 800, color: "#FF0080", outline: "none", background: "#FFF5F9", fontFamily: "'Nunito', sans-serif", textAlign: "right" }} onFocus={(e) => e.target.style.borderColor = "#FF3CAC"} onBlur={(e) => e.target.style.borderColor = "#FFB3D1"} />
+                </div>
+              </div>
+
+              <div style={{ display: "flex", gap: 8 }}>
+                <GradientButton variant="secondary" onClick={() => setShowInvoicePreview(false)} style={{ flex: 1 }}>Cancel</GradientButton>
+                <GradientButton onClick={submitInvoice} style={{ flex: 1 }}>🧾 Submit Invoice</GradientButton>
+              </div>
+            </Card>
+          </div>
+        );
+      })()}
+
       {/* Combined Invoice Modal */}
       {showCombinedInvoice && <CombinedInvoiceModal
         currentJob={job}
@@ -2180,17 +2245,33 @@ function CombinedInvoiceModal({ currentJob, sameClientJobs, settings, onClose, o
   const toggle = (id) => setSelected(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
 
   const allJobs = [currentJob, ...sameClientJobs.filter(j => selected.includes(j.id))];
-  let totalAmount = 0;
+  let autoTotal = 0;
   const breakdown = allJobs.map(j => {
-    let base = (j.actualHours || j.estimatedHours || 0) * settings.hourlyRate;
+    let base = (j.estimatedHours || 0) * settings.hourlyRate;
     if (j.discountType === "percent") base -= base * ((j.discountValue || 0) / 100);
     else if (j.discountType === "dollar") base -= (j.discountValue || 0);
     const preTax = Math.max(0, base);
     const tax = j.paymentMethod !== "cash" ? preTax * WA_TAX_RATE : 0;
     const total = preTax + tax;
-    totalAmount += total;
-    return { job: j, hours: j.actualHours || j.estimatedHours || 0, preTax, tax, total };
+    autoTotal += total;
+    return { job: j, hours: j.estimatedHours || 0, actualHours: j.actualHours, preTax, tax, total };
   });
+
+  const [editTotal, setEditTotal] = useState(Math.round(autoTotal * 100) / 100);
+
+  // Recalculate when selection changes
+  useEffect(() => {
+    let t = 0;
+    [currentJob, ...sameClientJobs.filter(j => selected.includes(j.id))].forEach(j => {
+      let base = (j.estimatedHours || 0) * settings.hourlyRate;
+      if (j.discountType === "percent") base -= base * ((j.discountValue || 0) / 100);
+      else if (j.discountType === "dollar") base -= (j.discountValue || 0);
+      const preTax = Math.max(0, base);
+      const tax = j.paymentMethod !== "cash" ? preTax * WA_TAX_RATE : 0;
+      t += preTax + tax;
+    });
+    setEditTotal(Math.round(t * 100) / 100);
+  }, [selected]);
 
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: 20 }}>
@@ -2203,7 +2284,7 @@ function CombinedInvoiceModal({ currentJob, sameClientJobs, settings, onClose, o
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <div>
               <div style={{ fontSize: 13, fontWeight: 700, color: "#2D2D2D" }}>✨ This Job (included)</div>
-              <div style={{ fontSize: 11, color: "#6B6B6B" }}>{getJobSummary(currentJob.spaces)} • {currentJob.actualHours || currentJob.estimatedHours}h</div>
+              <div style={{ fontSize: 11, color: "#6B6B6B" }}>{getJobSummary(currentJob.spaces)} • {currentJob.estimatedHours}h est.{currentJob.actualHours ? ` (${currentJob.actualHours}h actual)` : ""}</div>
               {currentJob.scheduledDate && <div style={{ fontSize: 10, color: "#FF3CAC", fontWeight: 600 }}>📅 {formatDate(currentJob.scheduledDate)}</div>}
             </div>
             <div style={{ fontWeight: 800, color: "#FF0080", fontSize: 14 }}>{formatCurrency(breakdown[0]?.total || 0)}</div>
@@ -2225,7 +2306,7 @@ function CombinedInvoiceModal({ currentJob, sameClientJobs, settings, onClose, o
                     {isSelected && "✓"}
                   </div>
                   <div>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: "#2D2D2D" }}>{getJobSummary(j.spaces)} • {j.actualHours || j.estimatedHours}h</div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: "#2D2D2D" }}>{getJobSummary(j.spaces)} • {j.estimatedHours}h est.{j.actualHours ? ` (${j.actualHours}h actual)` : ""}</div>
                     <div style={{ fontSize: 10, color: "#6B6B6B" }}>
                       {j.scheduledDate ? formatDate(j.scheduledDate) : "No date"} • {j.status}
                     </div>
@@ -2245,15 +2326,24 @@ function CombinedInvoiceModal({ currentJob, sameClientJobs, settings, onClose, o
               <span style={{ fontWeight: 600 }}>{formatCurrency(b.total)}</span>
             </div>
           ))}
-          <div style={{ display: "flex", justifyContent: "space-between", marginTop: 8, paddingTop: 8, borderTop: "2px solid #FFB3D1" }}>
-            <span style={{ fontWeight: 800, fontSize: 14, color: "#2D2D2D" }}>Total</span>
-            <span style={{ fontWeight: 900, fontSize: 18, color: "#FF0080" }}>{formatCurrency(totalAmount)}</span>
+          <div style={{ display: "flex", justifyContent: "space-between", marginTop: 8, paddingTop: 8, borderTop: "2px solid #FFB3D1", alignItems: "center" }}>
+            <span style={{ fontWeight: 800, fontSize: 14, color: "#2D2D2D" }}>Auto-calculated</span>
+            <span style={{ fontWeight: 700, fontSize: 14, color: "#6B6B6B" }}>{formatCurrency(autoTotal)}</span>
+          </div>
+        </div>
+
+        {/* Editable total */}
+        <div style={{ marginTop: 12 }}>
+          <label style={{ fontSize: 12, fontWeight: 700, color: "#2D2D2D", marginBottom: 4, display: "block" }}>💰 Final Invoice Amount (editable)</label>
+          <div style={{ position: "relative" }}>
+            <span style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", fontSize: 16, fontWeight: 800, color: "#FF0080" }}>$</span>
+            <input type="number" step="0.01" min="0" value={editTotal} onChange={(e) => setEditTotal(parseFloat(e.target.value) || 0)} style={{ width: "100%", padding: "14px 14px 14px 30px", borderRadius: 14, border: "2px solid #FFB3D1", fontSize: 20, fontWeight: 800, color: "#FF0080", outline: "none", background: "#FFF5F9", fontFamily: "'Nunito', sans-serif", textAlign: "right" }} onFocus={(e) => e.target.style.borderColor = "#FF3CAC"} onBlur={(e) => e.target.style.borderColor = "#FFB3D1"} />
           </div>
         </div>
 
         <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
           <GradientButton variant="secondary" onClick={onClose} style={{ flex: 1 }}>Cancel</GradientButton>
-          <GradientButton onClick={() => onGenerate(selected)} style={{ flex: 1 }}>🧾 Generate Combined Invoice</GradientButton>
+          <GradientButton onClick={() => onGenerate(selected, editTotal)} style={{ flex: 1 }}>🧾 Generate Combined Invoice</GradientButton>
         </div>
       </Card>
     </div>
