@@ -251,6 +251,12 @@ function createEmptySpace() {
     beforePhotos: [],
     afterPhotos: [],
     estimatedHours: 0,
+    // Per-space scheduling & time tracking
+    scheduledDate: "",
+    scheduledTime: "",
+    actualHours: null,
+    actualStartTime: null,
+    actualEndTime: null,
   };
 }
 
@@ -793,7 +799,7 @@ function PhotoUpload({ photos = [], onPhotosChange, label, jobName, spaceType, p
 }
 
 // ─── Space Editor Card (used in both NewJob and JobDetail) ───
-function SpaceEditorCard({ space, index, total, onUpdate, onRemove, collapsed, onToggle, jobName }) {
+function SpaceEditorCard({ space, index, total, onUpdate, onRemove, collapsed, onToggle, jobName, showTimeTracking, settings }) {
   const emoji = SPACE_TYPES.find(t => t.label === space.spaceType)?.emoji || "📦";
   const hours = estimateSpaceHours(space.spaceType, space.size, space.clutterLevel);
 
@@ -818,6 +824,14 @@ function SpaceEditorCard({ space, index, total, onUpdate, onRemove, collapsed, o
     onUpdate(updated);
   };
 
+  // Per-space actual hours calculation from start/end
+  const calcSpaceActual = () => {
+    if (space.actualStartTime && space.actualEndTime) {
+      return Math.round((new Date(space.actualEndTime) - new Date(space.actualStartTime)) / 3600000 * 10) / 10;
+    }
+    return space.actualHours || null;
+  };
+
   return (
     <div style={{ background: "#fff", border: "2px solid #FFB3D1", borderRadius: 16, marginBottom: 10, overflow: "hidden", animation: "fadeIn 0.3s ease" }}>
       {/* Collapsed header — always visible */}
@@ -827,11 +841,17 @@ function SpaceEditorCard({ space, index, total, onUpdate, onRemove, collapsed, o
           <div style={{ fontWeight: 700, fontSize: 13 }}>
             {space.spaceType}
             <span style={{ fontWeight: 500, color: "#FF3CAC", marginLeft: 6, fontSize: 11 }}>
-              {space.estimatedHours || hours}h
+              {space.estimatedHours || hours}h est.
             </span>
+            {space.actualHours != null && (
+              <span style={{ fontWeight: 600, color: "#059669", marginLeft: 4, fontSize: 11 }}>
+                • {space.actualHours}h actual
+              </span>
+            )}
           </div>
           <div style={{ fontSize: 11, color: "#6B6B6B" }}>
             {space.size} • {space.clutterLevel} clutter
+            {space.scheduledDate && <span style={{ color: "#FF3CAC", fontWeight: 600 }}> • 📅 {formatDate(space.scheduledDate)}</span>}
           </div>
         </div>
         <span style={{ fontSize: 11, color: "#FF0080", fontWeight: 700 }}>{collapsed ? "▼" : "▲"}</span>
@@ -888,6 +908,51 @@ function SpaceEditorCard({ space, index, total, onUpdate, onRemove, collapsed, o
               </div>
             </div>
           </div>
+
+          {/* Per-space scheduling & actual time (only in JobDetail) */}
+          {showTimeTracking && (
+            <div style={{ background: "linear-gradient(135deg, #EFF6FF, #E8C5F5)", borderRadius: 16, padding: 12, marginTop: 8 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "#6A1B9A", marginBottom: 8 }}>📅 Schedule & Time for this space</div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 8 }}>
+                <div>
+                  <label style={{ fontSize: 10, fontWeight: 600, color: "#6B6B6B", display: "block", marginBottom: 3 }}>Scheduled Date</label>
+                  <input type="date" value={space.scheduledDate || ""} onChange={(e) => updateField("scheduledDate", e.target.value)} style={{ width: "100%", padding: "7px 8px", borderRadius: 10, border: "1.5px solid #CE93D8", fontSize: 12, outline: "none", background: "#fff" }} />
+                </div>
+                <div>
+                  <label style={{ fontSize: 10, fontWeight: 600, color: "#6B6B6B", display: "block", marginBottom: 3 }}>Start Time</label>
+                  <input type="time" value={space.scheduledTime || ""} onChange={(e) => updateField("scheduledTime", e.target.value)} style={{ width: "100%", padding: "7px 8px", borderRadius: 10, border: "1.5px solid #CE93D8", fontSize: 12, outline: "none", background: "#fff" }} />
+                </div>
+              </div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "#059669", marginBottom: 6, marginTop: 4 }}>⏱️ Actual Time Worked</div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 6 }}>
+                <div>
+                  <label style={{ fontSize: 10, fontWeight: 600, color: "#6B6B6B", display: "block", marginBottom: 3 }}>Start</label>
+                  <input type="datetime-local" value={space.actualStartTime ? space.actualStartTime.slice(0, 16) : ""} onChange={(e) => {
+                    const v = e.target.value ? new Date(e.target.value).toISOString() : null;
+                    const updated = { ...space, actualStartTime: v };
+                    if (v && space.actualEndTime) { updated.actualHours = Math.round((new Date(space.actualEndTime) - new Date(v)) / 3600000 * 10) / 10; }
+                    onUpdate(updated);
+                  }} style={{ width: "100%", padding: "7px 6px", borderRadius: 10, border: "1.5px solid #80CBC4", fontSize: 11, outline: "none", background: "#fff" }} />
+                </div>
+                <div>
+                  <label style={{ fontSize: 10, fontWeight: 600, color: "#6B6B6B", display: "block", marginBottom: 3 }}>End</label>
+                  <input type="datetime-local" value={space.actualEndTime ? space.actualEndTime.slice(0, 16) : ""} onChange={(e) => {
+                    const v = e.target.value ? new Date(e.target.value).toISOString() : null;
+                    const updated = { ...space, actualEndTime: v };
+                    if (v && space.actualStartTime) { updated.actualHours = Math.round((new Date(v) - new Date(space.actualStartTime)) / 3600000 * 10) / 10; }
+                    onUpdate(updated);
+                  }} style={{ width: "100%", padding: "7px 6px", borderRadius: 10, border: "1.5px solid #80CBC4", fontSize: 11, outline: "none", background: "#fff" }} />
+                </div>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <label style={{ fontSize: 10, fontWeight: 600, color: "#6B6B6B" }}>Actual hours:</label>
+                <input type="number" step="0.5" min="0" value={space.actualHours != null ? space.actualHours : ""} onChange={(e) => updateField("actualHours", e.target.value ? parseFloat(e.target.value) : null)} placeholder="auto or manual" style={{ flex: 1, padding: "6px 8px", borderRadius: 8, border: "1.5px solid #80CBC4", fontSize: 12, outline: "none", background: "#fff" }} />
+                {space.actualHours != null && (
+                  <span style={{ fontSize: 11, fontWeight: 700, color: "#059669" }}>= {formatCurrency((space.actualHours || 0) * (settings?.hourlyRate || DEFAULT_RATE))}</span>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -1567,7 +1632,9 @@ function JobDetail({ job, allJobs, updateJob, deleteJob, settings, showToast, se
   };
 
   const openInvoicePreview = () => {
-    let base = (job.estimatedHours || 0) * settings.hourlyRate;
+    // Use per-space actual hours sum if available, then job-level actual, then estimated
+    const billableHours = totalActualHours > 0 ? totalActualHours : (job.actualHours || job.estimatedHours || 0);
+    let base = billableHours * settings.hourlyRate;
     if (job.discountType === "percent") base -= base * ((job.discountValue || 0) / 100);
     else if (job.discountType === "dollar") base -= (job.discountValue || 0);
     if (job.paymentMethod !== "cash") base += base * WA_TAX_RATE;
@@ -1783,6 +1850,10 @@ function JobDetail({ job, allJobs, updateJob, deleteJob, settings, showToast, se
 
   const accuracyDiff = job.actualHours && job.estimatedHours ? Math.round((job.actualHours - job.estimatedHours) * 10) / 10 : null;
 
+  // Sum of per-space actual hours (for invoice and display)
+  const spaceActualHours = spaces.reduce((sum, s) => sum + (s.actualHours || 0), 0);
+  const totalActualHours = spaceActualHours > 0 ? Math.round(spaceActualHours * 10) / 10 : 0;
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
       <button onClick={() => setCurrentView("jobs")} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 14, fontWeight: 800, color: "#FF0080", textAlign: "left", padding: 0, fontFamily: "'Nunito', sans-serif" }}>← Back to Jobs</button>
@@ -1838,10 +1909,37 @@ function JobDetail({ job, allJobs, updateJob, deleteJob, settings, showToast, se
           </div>
           <div style={{ background: "#FFE0F0", borderRadius: 16, padding: 12, textAlign: "center" }}>
             <div style={{ fontSize: 11, color: "#6B6B6B", fontWeight: 600 }}>Actual</div>
-            <div style={{ fontWeight: 800, color: "#FF0080", fontSize: 16 }}>{job.actualHours ? `${job.actualHours}h` : "—"}</div>
-            {job.actualHours && <div style={{ fontSize: 11, color: "#6B6B6B" }}>{formatCurrency(job.actualHours * settings.hourlyRate)}</div>}
+            <div style={{ fontWeight: 800, color: "#FF0080", fontSize: 16 }}>{totalActualHours ? `${totalActualHours}h` : job.actualHours ? `${job.actualHours}h` : "—"}</div>
+            {(totalActualHours || job.actualHours) && <div style={{ fontSize: 11, color: "#6B6B6B" }}>{formatCurrency((totalActualHours || job.actualHours) * settings.hourlyRate)}</div>}
           </div>
         </div>
+
+        {/* Per-space breakdown */}
+        {spaces.some(s => s.actualHours != null || s.scheduledDate) && (
+          <div style={{ marginTop: 10, background: "#FFF5F9", borderRadius: 14, padding: 10 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "#6B6B6B", marginBottom: 6 }}>Per-space breakdown:</div>
+            {spaces.map(s => {
+              const sEmoji = SPACE_TYPES.find(t => t.label === s.spaceType)?.emoji || "📦";
+              return (
+                <div key={s.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 11, padding: "4px 0", borderBottom: "1px solid rgba(255,60,172,0.08)" }}>
+                  <span style={{ color: "#2D2D2D", fontWeight: 600 }}>{sEmoji} {s.spaceType}</span>
+                  <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                    <span style={{ color: "#FF3CAC" }}>Est: {s.estimatedHours || 0}h</span>
+                    {s.actualHours != null && <span style={{ color: "#059669", fontWeight: 700 }}>Act: {s.actualHours}h</span>}
+                    {s.scheduledDate && <span style={{ color: "#6A1B9A", fontSize: 10 }}>📅 {formatDate(s.scheduledDate)}</span>}
+                  </div>
+                </div>
+              );
+            })}
+            {totalActualHours > 0 && (
+              <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6, paddingTop: 6, borderTop: "1.5px solid #FFB3D1", fontSize: 12, fontWeight: 700 }}>
+                <span style={{ color: "#2D2D2D" }}>Total actual</span>
+                <span style={{ color: "#FF0080" }}>{totalActualHours}h = {formatCurrency(totalActualHours * settings.hourlyRate)}</span>
+              </div>
+            )}
+          </div>
+        )}
+
         {accuracyDiff !== null && (
           <div style={{ marginTop: 8, padding: 8, borderRadius: 10, background: accuracyDiff > 0 ? "#FFF1F2" : "#ECFDF5", textAlign: "center", fontSize: 12, fontWeight: 600, color: accuracyDiff > 0 ? "#E11D48" : "#059669" }}>
             {accuracyDiff > 0 ? `⚠️ Took ${accuracyDiff}h longer than estimated` : accuracyDiff < 0 ? `✅ Finished ${Math.abs(accuracyDiff)}h early!` : "✅ Right on time!"}
@@ -1867,6 +1965,8 @@ function JobDetail({ job, allJobs, updateJob, deleteJob, settings, showToast, se
             onRemove={() => removeSpaceFromJob(index)}
             collapsed={expandedSpace !== index}
             onToggle={() => setExpandedSpace(expandedSpace === index ? -1 : index)}
+            showTimeTracking={true}
+            settings={settings}
           />
         ))}
       </Card>
@@ -2167,21 +2267,42 @@ function JobDetail({ job, allJobs, updateJob, deleteJob, settings, showToast, se
 
       {/* Invoice Preview Modal — editable amount before submitting */}
       {showInvoicePreview && (() => {
-        const estBase = (job.estimatedHours || 0) * settings.hourlyRate;
+        const billableHours = totalActualHours > 0 ? totalActualHours : (job.actualHours || job.estimatedHours || 0);
+        const estBase = billableHours * settings.hourlyRate;
         const discount = job.discountType === "percent" ? estBase * ((job.discountValue || 0) / 100) : job.discountType === "dollar" ? (job.discountValue || 0) : 0;
         const afterDiscount = Math.max(0, estBase - discount);
         const tax = job.paymentMethod !== "cash" ? afterDiscount * WA_TAX_RATE : 0;
         return (
           <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: 20 }}>
-            <Card style={{ width: "100%", maxWidth: 400 }}>
+            <Card style={{ width: "100%", maxWidth: 420, maxHeight: "85vh", overflow: "auto" }}>
               <h3 style={{ fontFamily: "'Nunito', sans-serif", fontSize: 18, fontWeight: 800, margin: "0 0 4px" }}>🧾 Invoice Preview</h3>
               <p style={{ fontSize: 12, color: "#6B6B6B", margin: "0 0 14px", lineHeight: 1.5 }}>Review the amount before sending. You can override it if needed.</p>
 
-              {/* Breakdown */}
+              {/* Per-space breakdown */}
+              {spaces.length > 0 && (
+                <div style={{ background: "#FFF5F9", borderRadius: 14, padding: 12, marginBottom: 10 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "#6B6B6B", marginBottom: 6 }}>Per-space hours:</div>
+                  {spaces.map(s => {
+                    const sEmoji = SPACE_TYPES.find(t => t.label === s.spaceType)?.emoji || "📦";
+                    const hrs = s.actualHours != null ? s.actualHours : (s.estimatedHours || 0);
+                    return (
+                      <div key={s.id} style={{ display: "flex", justifyContent: "space-between", fontSize: 11, padding: "3px 0", borderBottom: "1px solid rgba(255,60,172,0.08)" }}>
+                        <span>{sEmoji} {s.spaceType}{s.scheduledDate ? ` (${formatDate(s.scheduledDate)})` : ""}</span>
+                        <span style={{ fontWeight: 600 }}>
+                          {s.actualHours != null ? <span style={{ color: "#059669" }}>{s.actualHours}h actual</span> : <span style={{ color: "#FF3CAC" }}>{s.estimatedHours || 0}h est.</span>}
+                          {" = "}{formatCurrency(hrs * settings.hourlyRate)}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Totals */}
               <div style={{ background: "#FFF5F9", borderRadius: 14, padding: 14, marginBottom: 14 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "#6B6B6B", marginBottom: 4 }}>
-                  <span>Estimated hours</span>
-                  <span style={{ fontWeight: 700, color: "#2D2D2D" }}>{job.estimatedHours || 0}h × {formatCurrency(settings.hourlyRate)}</span>
+                  <span>Billable hours</span>
+                  <span style={{ fontWeight: 700, color: "#2D2D2D" }}>{billableHours}h × {formatCurrency(settings.hourlyRate)}</span>
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "#6B6B6B", marginBottom: 4 }}>
                   <span>Subtotal</span>
@@ -2203,9 +2324,9 @@ function JobDetail({ job, allJobs, updateJob, deleteJob, settings, showToast, se
                   <span>Auto-calculated total</span>
                   <span style={{ fontWeight: 700, color: "#FF0080" }}>{formatCurrency(afterDiscount + tax)}</span>
                 </div>
-                {job.actualHours && job.actualHours !== job.estimatedHours && (
+                {totalActualHours > 0 && totalActualHours !== (job.estimatedHours || 0) && (
                   <div style={{ fontSize: 11, color: "#6B6B6B", marginTop: 8, background: "#fff", borderRadius: 8, padding: 8 }}>
-                    💡 Actual time was <strong>{job.actualHours}h</strong> (estimated {job.estimatedHours}h) — adjust the amount below if needed.
+                    💡 Per-space actual total is <strong>{totalActualHours}h</strong> (estimated {job.estimatedHours}h) — adjust the amount below if needed.
                   </div>
                 )}
               </div>
