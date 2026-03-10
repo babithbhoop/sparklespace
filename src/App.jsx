@@ -271,6 +271,26 @@ function totalSpacesHours(spaces) {
   return spaces.reduce((sum, s) => sum + (s.estimatedHours || estimateSpaceHours(s.spaceType, s.size, s.clutterLevel)), 0);
 }
 
+// Get the best actual hours: sum of per-space actuals if any exist, else job-level actualHours
+function getEffectiveActualHours(job) {
+  const spaces = job.spaces || [];
+  const spaceActual = spaces.reduce((sum, s) => sum + (s.actualHours || 0), 0);
+  if (spaceActual > 0) return Math.round(spaceActual * 10) / 10;
+  return job.actualHours || 0;
+}
+
+// Get all per-space scheduled dates for calendar/card display
+function getSpaceSchedules(job) {
+  const schedules = [];
+  (job.spaces || []).forEach(s => {
+    if (s.scheduledDate) {
+      const emoji = SPACE_TYPES.find(t => t.label === s.spaceType)?.emoji || "📦";
+      schedules.push({ date: s.scheduledDate, time: s.scheduledTime || "", spaceType: s.spaceType, emoji, hours: s.estimatedHours || 0, actualHours: s.actualHours });
+    }
+  });
+  return schedules;
+}
+
 function getJobEmojis(spaces) {
   if (!spaces || spaces.length === 0) return "📦";
   return [...new Set(spaces.map(s => SPACE_TYPES.find(t => t.label === s.spaceType)?.emoji || "📦"))].join("");
@@ -803,15 +823,23 @@ function SpaceEditorCard({ space, index, total, onUpdate, onRemove, collapsed, o
   const emoji = SPACE_TYPES.find(t => t.label === space.spaceType)?.emoji || "📦";
   const hours = estimateSpaceHours(space.spaceType, space.size, space.clutterLevel);
 
-  // Sync estimated hours when params change (only if not manually overridden)
+  // Sync estimated hours when space type/size/clutter change (only if not manually overridden)
+  const prevTypeRef = useRef(space.spaceType);
+  const prevSizeRef = useRef(space.size);
+  const prevClutterRef = useRef(space.clutterLevel);
   useEffect(() => {
+    // Only fire when type, size, or clutter actually changed (not on every render)
+    if (prevTypeRef.current === space.spaceType && prevSizeRef.current === space.size && prevClutterRef.current === space.clutterLevel) return;
+    prevTypeRef.current = space.spaceType;
+    prevSizeRef.current = space.size;
+    prevClutterRef.current = space.clutterLevel;
     if (!space._manualOverride) {
       const autoHours = estimateSpaceHours(space.spaceType, space.size, space.clutterLevel);
       if (space.estimatedHours !== autoHours) {
         onUpdate({ ...space, estimatedHours: autoHours });
       }
     }
-  }, [space.spaceType, space.size, space.clutterLevel]);
+  });
 
   // Batch update: sets multiple fields at once to avoid stale state issues
   const updateFields = (changes) => {
@@ -927,8 +955,8 @@ function SpaceEditorCard({ space, index, total, onUpdate, onRemove, collapsed, o
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 6 }}>
                 <div>
                   <label style={{ fontSize: 10, fontWeight: 600, color: "#6B6B6B", display: "block", marginBottom: 3 }}>Start</label>
-                  <input type="datetime-local" value={space.actualStartTime ? space.actualStartTime.slice(0, 16) : ""} onChange={(e) => {
-                    const v = e.target.value ? new Date(e.target.value).toISOString() : null;
+                  <input type="datetime-local" value={space.actualStartTime || ""} onChange={(e) => {
+                    const v = e.target.value || null;
                     const updated = { ...space, actualStartTime: v };
                     if (v && space.actualEndTime) { updated.actualHours = Math.round((new Date(space.actualEndTime) - new Date(v)) / 3600000 * 10) / 10; }
                     onUpdate(updated);
@@ -936,8 +964,8 @@ function SpaceEditorCard({ space, index, total, onUpdate, onRemove, collapsed, o
                 </div>
                 <div>
                   <label style={{ fontSize: 10, fontWeight: 600, color: "#6B6B6B", display: "block", marginBottom: 3 }}>End</label>
-                  <input type="datetime-local" value={space.actualEndTime ? space.actualEndTime.slice(0, 16) : ""} onChange={(e) => {
-                    const v = e.target.value ? new Date(e.target.value).toISOString() : null;
+                  <input type="datetime-local" value={space.actualEndTime || ""} onChange={(e) => {
+                    const v = e.target.value || null;
                     const updated = { ...space, actualEndTime: v };
                     if (v && space.actualStartTime) { updated.actualHours = Math.round((new Date(v) - new Date(space.actualStartTime)) / 3600000 * 10) / 10; }
                     onUpdate(updated);
@@ -1219,16 +1247,30 @@ function JobCard({ job, onClick }) {
           </div>
           <div style={{ fontSize: 12, color: "#6B6B6B", marginTop: 2 }}>
             {spaces.length === 1 ? spaces[0].spaceType : `${spaces.length} spaces`} • {job.estimatedHours}h est.
+            {(() => { const eff = getEffectiveActualHours(job); return eff > 0 ? <span style={{ color: "#059669", fontWeight: 600 }}> • {eff}h actual</span> : null; })()}
           </div>
           {spaces.length > 1 && (
             <div style={{ display: "flex", gap: 4, marginTop: 4, flexWrap: "wrap" }}>
               {spaces.map(s => (
                 <span key={s.id} style={{ fontSize: 9, background: "#E8C5F5", color: "#6A1B9A", padding: "2px 8px", borderRadius: 10, fontWeight: 700 }}>
                   {SPACE_TYPES.find(t => t.label === s.spaceType)?.emoji} {s.spaceType}
+                  {s.estimatedHours ? ` ${s.estimatedHours}h` : ""}
+                  {s.actualHours != null ? ` → ${s.actualHours}h` : ""}
                 </span>
               ))}
             </div>
           )}
+          {/* Per-space schedules */}
+          {spaces.some(s => s.scheduledDate) && (
+            <div style={{ display: "flex", gap: 4, marginTop: 3, flexWrap: "wrap" }}>
+              {spaces.filter(s => s.scheduledDate).map(s => (
+                <span key={s.id} style={{ fontSize: 9, background: "#F3E8FF", color: "#6A1B9A", padding: "2px 6px", borderRadius: 6, fontWeight: 600 }}>
+                  {SPACE_TYPES.find(t => t.label === s.spaceType)?.emoji} {formatDate(s.scheduledDate)} • {s.estimatedHours || 0}h
+                </span>
+              ))}
+            </div>
+          )}
+          {/* Job-level schedule days */}
           {job.scheduleDays && job.scheduleDays.length > 0 ? (
             <div style={{ display: "flex", gap: 4, marginTop: 3, flexWrap: "wrap" }}>
               {job.scheduleDays.filter(d => d.date).map((d, i) => (
@@ -1237,7 +1279,7 @@ function JobCard({ job, onClick }) {
                 </span>
               ))}
             </div>
-          ) : job.scheduledDate ? (
+          ) : job.scheduledDate && !spaces.some(s => s.scheduledDate) ? (
             <div style={{ fontSize: 11, color: "#FF3CAC", fontWeight: 600, marginTop: 3 }}>📅 {formatDate(job.scheduledDate)}</div>
           ) : null}
         </div>
@@ -2495,25 +2537,73 @@ function CalendarView({ data, openJob }) {
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const firstDay = new Date(year, month, 1).getDay();
   const monthName = currentMonth.toLocaleDateString("en-US", { month: "long", year: "numeric" });
-  const scheduledJobs = data.jobs.filter(j => j.scheduledDate || (j.scheduleDays && j.scheduleDays.length > 0));
+
+  // Build calendar entries from: job-level scheduleDays, job-level scheduledDate, AND per-space scheduledDate
   const getJobsForDay = (day) => {
     const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
     const results = [];
-    scheduledJobs.forEach(j => {
+    data.jobs.forEach(j => {
+      // Job-level schedule days
       const days = (j.scheduleDays || []).filter(d => d.date);
       if (days.length > 0) {
         const matchDay = days.find(d => d.date === dateStr);
-        if (matchDay) results.push({ ...j, _dayInfo: matchDay });
+        if (matchDay) results.push({ ...j, _dayInfo: matchDay, _label: `${j.clientName.split(" ")[0]}` });
       } else if (j.scheduledDate === dateStr) {
-        results.push(j);
+        results.push({ ...j, _label: `${j.clientName.split(" ")[0]}` });
+      }
+      // Per-space scheduled dates (only if not already matched above)
+      (j.spaces || []).forEach(s => {
+        if (s.scheduledDate === dateStr && !results.find(r => r.id === j.id && r._spaceId === s.id)) {
+          const emoji = SPACE_TYPES.find(t => t.label === s.spaceType)?.emoji || "📦";
+          results.push({ ...j, _spaceId: s.id, _spaceInfo: s, _label: `${j.clientName.split(" ")[0]} ${emoji}` });
+        }
+      });
+    });
+    // Deduplicate by job.id + spaceId
+    const seen = new Set();
+    return results.filter(r => {
+      const key = `${r.id}-${r._spaceId || "job"}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  };
+
+  const isToday = (day) => { const t = new Date(); return day === t.getDate() && month === t.getMonth() && year === t.getFullYear(); };
+  const calDays = [];
+  for (let i = 0; i < firstDay; i++) calDays.push(null);
+  for (let d = 1; d <= daysInMonth; d++) calDays.push(d);
+
+  // Build "This Month's Jobs" flat list including per-space entries
+  const monthEntries = [];
+  data.jobs.forEach(job => {
+    // Job-level schedule days
+    const days = (job.scheduleDays || []).filter(d => d.date);
+    if (days.length > 0) {
+      days.forEach((d, i) => {
+        const dt = new Date(d.date);
+        if (dt.getMonth() === month && dt.getFullYear() === year) {
+          monthEntries.push({ job, date: d.date, label: `${getJobSummary(job.spaces)}`, subLabel: `Day ${i + 1}/${days.length} • ${d.startTime || ""} • ${d.hours}h`, type: "schedule" });
+        }
+      });
+    } else if (job.scheduledDate) {
+      const dt = new Date(job.scheduledDate);
+      if (dt.getMonth() === month && dt.getFullYear() === year) {
+        monthEntries.push({ job, date: job.scheduledDate, label: `${getJobSummary(job.spaces)}`, subLabel: `${job.scheduledTime || ""} • ${job.estimatedHours || 0}h`, type: "schedule" });
+      }
+    }
+    // Per-space scheduled dates
+    (job.spaces || []).forEach(s => {
+      if (s.scheduledDate) {
+        const dt = new Date(s.scheduledDate);
+        if (dt.getMonth() === month && dt.getFullYear() === year) {
+          const emoji = SPACE_TYPES.find(t => t.label === s.spaceType)?.emoji || "📦";
+          monthEntries.push({ job, date: s.scheduledDate, label: `${emoji} ${s.spaceType}`, subLabel: `${s.scheduledTime || ""} • ${s.estimatedHours || 0}h est.${s.actualHours != null ? ` • ${s.actualHours}h actual` : ""}`, type: "space" });
+        }
       }
     });
-    return results;
-  };
-  const isToday = (day) => { const t = new Date(); return day === t.getDate() && month === t.getMonth() && year === t.getFullYear(); };
-  const days = [];
-  for (let i = 0; i < firstDay; i++) days.push(null);
-  for (let d = 1; d <= daysInMonth; d++) days.push(d);
+  });
+  monthEntries.sort((a, b) => a.date.localeCompare(b.date));
 
   return (
     <div>
@@ -2527,7 +2617,7 @@ function CalendarView({ data, openJob }) {
           {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map(d => (
             <div key={d} style={{ fontSize: 10, fontWeight: 700, color: "#6B6B6B", padding: "6px 0" }}>{d}</div>
           ))}
-          {days.map((day, i) => {
+          {calDays.map((day, i) => {
             if (!day) return <div key={`e-${i}`} />;
             const jobs = getJobsForDay(day);
             const today = isToday(day);
@@ -2535,8 +2625,8 @@ function CalendarView({ data, openJob }) {
               <div key={day} style={{ padding: "6px 2px", borderRadius: 10, minHeight: 44, background: today ? "linear-gradient(135deg, #FF3CAC, #FF0080)" : jobs.length ? "#FFE0F0" : "transparent", cursor: jobs.length ? "pointer" : "default" }} onClick={() => { if (jobs.length) openJob(jobs[0].id); }}>
                 <div style={{ fontSize: 12, fontWeight: today ? 800 : 500, color: today ? "#fff" : "#333" }}>{day}</div>
                 {jobs.slice(0, 2).map((j, idx) => (
-                  <div key={idx} style={{ fontSize: 7, background: today ? "rgba(255,255,255,0.3)" : "#FF0080", color: "#fff", borderRadius: 4, padding: "1px 3px", marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontWeight: 600 }}>
-                    {j.clientName.split(" ")[0]}
+                  <div key={idx} style={{ fontSize: 7, background: today ? "rgba(255,255,255,0.3)" : j._spaceInfo ? "#6A1B9A" : "#FF0080", color: "#fff", borderRadius: 4, padding: "1px 3px", marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontWeight: 600 }}>
+                    {j._label}
                   </div>
                 ))}
                 {jobs.length > 2 && <div style={{ fontSize: 7, color: today ? "#fff" : "#FF3CAC", fontWeight: 700 }}>+{jobs.length - 2}</div>}
@@ -2546,45 +2636,28 @@ function CalendarView({ data, openJob }) {
         </div>
       </Card>
       <h3 style={{ fontFamily: "'Nunito', sans-serif", fontSize: 14, fontWeight: 700, color: "#2D2D2D", margin: "16px 0 10px" }}>📋 This Month's Jobs</h3>
-      {(() => {
-        // Build a flat list of (job, dayInfo) for this month
-        const entries = [];
-        scheduledJobs.forEach(job => {
-          const days = (job.scheduleDays || []).filter(d => d.date);
-          if (days.length > 0) {
-            days.forEach((d, i) => {
-              const dt = new Date(d.date);
-              if (dt.getMonth() === month && dt.getFullYear() === year) {
-                entries.push({ job, dayInfo: d, dayIndex: i, totalDays: days.length });
-              }
-            });
-          } else if (job.scheduledDate) {
-            const dt = new Date(job.scheduledDate);
-            if (dt.getMonth() === month && dt.getFullYear() === year) {
-              entries.push({ job, dayInfo: null, dayIndex: 0, totalDays: 1 });
-            }
-          }
-        });
-        entries.sort((a, b) => (a.dayInfo?.date || a.job.scheduledDate).localeCompare(b.dayInfo?.date || b.job.scheduledDate));
-        return entries.map((entry, idx) => (
-          <Card key={`${entry.job.id}-${idx}`} onClick={() => openJob(entry.job.id)} style={{ padding: 12, marginBottom: 8 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <div>
-                <div style={{ fontWeight: 700, fontSize: 13 }}>
-                  {entry.job.clientName}
-                  {entry.totalDays > 1 && <span style={{ fontSize: 10, color: "#FF3CAC", fontWeight: 600, marginLeft: 6 }}>Day {entry.dayIndex + 1}/{entry.totalDays}</span>}
-                </div>
-                <div style={{ fontSize: 11, color: "#6B6B6B" }}>
-                  {getJobEmojis(entry.job.spaces)} {getJobSummary(entry.job.spaces)} • {formatDate(entry.dayInfo?.date || entry.job.scheduledDate)}
-                  {entry.dayInfo?.startTime ? ` • ${entry.dayInfo.startTime}` : ""}
-                  {entry.dayInfo?.hours ? ` • ${entry.dayInfo.hours}h` : ""}
-                </div>
+      {monthEntries.length === 0 && (
+        <Card style={{ textAlign: "center", padding: 20 }}>
+          <p style={{ color: "#6B6B6B", fontSize: 13 }}>No jobs scheduled this month</p>
+        </Card>
+      )}
+      {monthEntries.map((entry, idx) => (
+        <Card key={`${entry.job.id}-${idx}`} onClick={() => openJob(entry.job.id)} style={{ padding: 12, marginBottom: 8 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div>
+              <div style={{ fontWeight: 700, fontSize: 13 }}>
+                {entry.job.clientName}
+                {entry.type === "space" && <span style={{ fontSize: 11, color: "#6A1B9A", fontWeight: 600, marginLeft: 6 }}>{entry.label}</span>}
               </div>
-              <StatusBadge status={entry.job.status} />
+              <div style={{ fontSize: 11, color: "#6B6B6B" }}>
+                {entry.type === "schedule" && <>{getJobEmojis(entry.job.spaces)} {entry.label} • </>}
+                {formatDate(entry.date)} {entry.subLabel && `• ${entry.subLabel}`}
+              </div>
             </div>
-          </Card>
-        ));
-      })()}
+            <StatusBadge status={entry.job.status} />
+          </div>
+        </Card>
+      ))}
     </div>
   );
 }
@@ -2594,10 +2667,10 @@ function Analytics({ data }) {
   const paid = data.jobs.filter(j => j.status === "paid");
   const completed = data.jobs.filter(j => ["completed", "paid"].includes(j.status));
   const totalRevenue = paid.reduce((s, j) => s + (j.finalAmount || 0), 0);
-  const totalHours = completed.reduce((s, j) => s + (j.actualHours || j.estimatedHours || 0), 0);
+  const totalHours = completed.reduce((s, j) => s + (getEffectiveActualHours(j) || j.estimatedHours || 0), 0);
   const avgRating = completed.filter(j => j.feedback?.rating).reduce((s, j, _, arr) => s + j.feedback.rating / arr.length, 0);
-  const estimateAccuracy = completed.filter(j => j.actualHours && j.estimatedHours);
-  const avgDiff = estimateAccuracy.length ? estimateAccuracy.reduce((s, j) => s + Math.abs(j.actualHours - j.estimatedHours), 0) / estimateAccuracy.length : 0;
+  const estimateAccuracy = completed.filter(j => (getEffectiveActualHours(j) || j.actualHours) && j.estimatedHours);
+  const avgDiff = estimateAccuracy.length ? estimateAccuracy.reduce((s, j) => s + Math.abs((getEffectiveActualHours(j) || j.actualHours) - j.estimatedHours), 0) / estimateAccuracy.length : 0;
 
   // Revenue by space type (across all spaces in all paid jobs)
   const revenueByType = {};
@@ -2639,15 +2712,18 @@ function Analytics({ data }) {
       {estimateAccuracy.length > 0 && (
         <Card>
           <h3 style={{ fontFamily: "'Nunito', sans-serif", fontSize: 14, fontWeight: 700, margin: "0 0 10px" }}>🎯 Estimate Accuracy</h3>
-          {estimateAccuracy.map(j => (
+          {estimateAccuracy.map(j => {
+            const effActual = getEffectiveActualHours(j) || j.actualHours;
+            return (
             <div key={j.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "6px 0", borderBottom: "1px solid #F3F4F6", fontSize: 12 }}>
               <span style={{ fontWeight: 600 }}>{j.clientName}</span>
-              <span>Est: {j.estimatedHours}h → Actual: {j.actualHours}h</span>
-              <span style={{ fontWeight: 700, color: j.actualHours > j.estimatedHours ? "#DC2626" : "#059669" }}>
-                {j.actualHours > j.estimatedHours ? "+" : ""}{(j.actualHours - j.estimatedHours).toFixed(1)}h
+              <span>Est: {j.estimatedHours}h → Actual: {effActual}h</span>
+              <span style={{ fontWeight: 700, color: effActual > j.estimatedHours ? "#DC2626" : "#059669" }}>
+                {effActual > j.estimatedHours ? "+" : ""}{(effActual - j.estimatedHours).toFixed(1)}h
               </span>
             </div>
-          ))}
+            );
+          })}
         </Card>
       )}
 
