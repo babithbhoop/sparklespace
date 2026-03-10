@@ -264,6 +264,8 @@ function createEmptySpace() {
     actualHours: null,
     actualStartTime: null,
     actualEndTime: null,
+    // Per-space status: pending | completed | paid
+    spaceStatus: "pending",
   };
 }
 
@@ -870,18 +872,24 @@ function SpaceEditorCard({ space, index, total, onUpdate, onRemove, collapsed, o
   return (
     <div style={{ background: "#fff", border: "2px solid #FFB3D1", borderRadius: 16, marginBottom: 10, overflow: "hidden", animation: "fadeIn 0.3s ease" }}>
       {/* Collapsed header — always visible */}
-      <div onClick={onToggle} style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 14px", cursor: "pointer", background: collapsed ? "#FFF5F9" : "linear-gradient(135deg, #FFF5F9, #FFE0F0)" }}>
+      <div onClick={onToggle} style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 14px", cursor: "pointer", background: collapsed ? (space.spaceStatus === "paid" ? "#ECFDF5" : space.spaceStatus === "completed" ? "#F0FDF4" : "#FFF5F9") : "linear-gradient(135deg, #FFF5F9, #FFE0F0)" }}>
         <span style={{ fontSize: 22 }}>{emoji}</span>
         <div style={{ flex: 1 }}>
-          <div style={{ fontWeight: 700, fontSize: 13 }}>
+          <div style={{ fontWeight: 700, fontSize: 13, display: "flex", alignItems: "center", gap: 4, flexWrap: "wrap" }}>
             {space.spaceType}
-            <span style={{ fontWeight: 500, color: "#FF3CAC", marginLeft: 6, fontSize: 11 }}>
+            <span style={{ fontWeight: 500, color: "#FF3CAC", fontSize: 11 }}>
               {space.estimatedHours || hours}h est.
             </span>
             {space.actualHours != null && (
-              <span style={{ fontWeight: 600, color: "#059669", marginLeft: 4, fontSize: 11 }}>
+              <span style={{ fontWeight: 600, color: "#059669", fontSize: 11 }}>
                 • {space.actualHours}h actual
               </span>
+            )}
+            {space.spaceStatus === "completed" && (
+              <span style={{ fontSize: 9, background: "#B8F0E0", color: "#00695C", padding: "2px 8px", borderRadius: 10, fontWeight: 800, textTransform: "uppercase" }}>✅ done</span>
+            )}
+            {space.spaceStatus === "paid" && (
+              <span style={{ fontSize: 9, background: "linear-gradient(135deg, #B8F0E0, #34D399)", color: "#00695C", padding: "2px 8px", borderRadius: 10, fontWeight: 800, textTransform: "uppercase" }}>💰 paid</span>
             )}
           </div>
           <div style={{ fontSize: 11, color: "#6B6B6B" }}>
@@ -984,6 +992,30 @@ function SpaceEditorCard({ space, index, total, onUpdate, onRemove, collapsed, o
                 <input type="number" step="0.5" min="0" value={space.actualHours != null ? space.actualHours : ""} onChange={(e) => updateField("actualHours", e.target.value ? parseFloat(e.target.value) : null)} placeholder="auto or manual" style={{ flex: 1, padding: "6px 8px", borderRadius: 8, border: "1.5px solid #80CBC4", fontSize: 12, outline: "none", background: "#fff" }} />
                 {space.actualHours != null && (
                   <span style={{ fontSize: 11, fontWeight: 700, color: "#059669" }}>= {formatCurrency((space.actualHours || 0) * (settings?.hourlyRate || DEFAULT_RATE))}</span>
+                )}
+              </div>
+
+              {/* Per-space status actions */}
+              <div style={{ marginTop: 10, display: "flex", gap: 6 }}>
+                {(!space.spaceStatus || space.spaceStatus === "pending") && (
+                  <button onClick={(e) => { e.stopPropagation(); onUpdate({ ...space, spaceStatus: "completed", completedAt: new Date().toISOString(), actualHours: space.actualHours || space.estimatedHours || hours }); }} style={{ flex: 1, background: "linear-gradient(135deg, #34D399, #10B981)", border: "none", borderRadius: 12, padding: "9px", color: "#fff", fontWeight: 700, fontSize: 11, cursor: "pointer", fontFamily: "'Nunito', sans-serif", boxShadow: "0 2px 8px rgba(16,185,129,0.25)" }}>
+                    ✅ Mark Space Complete
+                  </button>
+                )}
+                {space.spaceStatus === "completed" && (
+                  <>
+                    <button onClick={(e) => { e.stopPropagation(); onUpdate({ ...space, spaceStatus: "paid", paidAt: new Date().toISOString() }); }} style={{ flex: 1, background: "linear-gradient(135deg, #FF3CAC, #FF0080)", border: "none", borderRadius: 12, padding: "9px", color: "#fff", fontWeight: 700, fontSize: 11, cursor: "pointer", fontFamily: "'Nunito', sans-serif", boxShadow: "0 2px 8px rgba(255,60,172,0.25)" }}>
+                      💰 Mark Space Paid
+                    </button>
+                    <button onClick={(e) => { e.stopPropagation(); onUpdate({ ...space, spaceStatus: "pending", completedAt: null }); }} style={{ background: "#FFF1F2", border: "1px solid #FECDD3", borderRadius: 12, padding: "9px 12px", color: "#E11D48", fontWeight: 700, fontSize: 11, cursor: "pointer", fontFamily: "'Nunito', sans-serif" }}>
+                      ↩ Undo
+                    </button>
+                  </>
+                )}
+                {space.spaceStatus === "paid" && (
+                  <div style={{ flex: 1, background: "linear-gradient(135deg, #ECFDF5, #D1FAE5)", borderRadius: 12, padding: "9px", textAlign: "center", fontSize: 11, fontWeight: 700, color: "#059669" }}>
+                    ✨ Paid {space.paidAt ? `on ${formatDate(space.paidAt.split("T")[0])}` : ""}
+                  </div>
                 )}
               </div>
             </div>
@@ -1570,7 +1602,27 @@ function JobDetail({ job, allJobs, updateJob, deleteJob, settings, showToast, se
     const newSpaces = [...spaces];
     newSpaces[index] = updated;
     const newHours = totalSpacesHours(newSpaces);
-    updateJob(job.id, { spaces: newSpaces, estimatedHours: newHours, estimatedCost: newHours * settings.hourlyRate });
+    const jobUpdates = { spaces: newSpaces, estimatedHours: newHours, estimatedCost: newHours * settings.hourlyRate };
+
+    // Auto-promote job status based on per-space statuses
+    const allStatuses = newSpaces.map(s => s.spaceStatus || "pending");
+    const allCompleted = allStatuses.every(s => s === "completed" || s === "paid");
+    const allPaid = allStatuses.every(s => s === "paid");
+
+    if (allPaid && job.status !== "paid") {
+      jobUpdates.status = "paid";
+      jobUpdates.paidAt = new Date().toISOString();
+      jobUpdates.actualHours = newSpaces.reduce((sum, s) => sum + (s.actualHours || s.estimatedHours || 0), 0);
+      jobUpdates.finalAmount = jobUpdates.actualHours * settings.hourlyRate;
+      showToast("All spaces paid! Job marked paid 💰");
+    } else if (allCompleted && !allPaid && !["completed", "invoiced", "paid"].includes(job.status)) {
+      jobUpdates.status = "completed";
+      jobUpdates.completedAt = new Date().toISOString();
+      jobUpdates.actualHours = newSpaces.reduce((sum, s) => sum + (s.actualHours || s.estimatedHours || 0), 0);
+      showToast("All spaces complete! Job marked completed ✅");
+    }
+
+    updateJob(job.id, jobUpdates);
   };
 
   const addSpaceToJob = () => {
@@ -1964,15 +2016,20 @@ function JobDetail({ job, allJobs, updateJob, deleteJob, settings, showToast, se
         </div>
 
         {/* Per-space breakdown */}
-        {spaces.some(s => s.actualHours != null || s.scheduledDate) && (
+        {spaces.length > 0 && (spaces.some(s => s.actualHours != null || s.scheduledDate || s.spaceStatus) || spaces.length > 1) && (
           <div style={{ marginTop: 10, background: "#FFF5F9", borderRadius: 14, padding: 10 }}>
             <div style={{ fontSize: 11, fontWeight: 700, color: "#6B6B6B", marginBottom: 6 }}>Per-space breakdown:</div>
             {spaces.map(s => {
               const sEmoji = SPACE_TYPES.find(t => t.label === s.spaceType)?.emoji || "📦";
+              const st = s.spaceStatus || "pending";
               return (
                 <div key={s.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 11, padding: "4px 0", borderBottom: "1px solid rgba(255,60,172,0.08)" }}>
-                  <span style={{ color: "#2D2D2D", fontWeight: 600 }}>{sEmoji} {s.spaceType}</span>
-                  <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                  <span style={{ color: "#2D2D2D", fontWeight: 600, display: "flex", alignItems: "center", gap: 4 }}>
+                    {sEmoji} {s.spaceType}
+                    {st === "completed" && <span style={{ fontSize: 8, background: "#B8F0E0", color: "#00695C", padding: "1px 5px", borderRadius: 6, fontWeight: 800 }}>DONE</span>}
+                    {st === "paid" && <span style={{ fontSize: 8, background: "#34D399", color: "#fff", padding: "1px 5px", borderRadius: 6, fontWeight: 800 }}>PAID</span>}
+                  </span>
+                  <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
                     <span style={{ color: "#FF3CAC" }}>Est: {s.estimatedHours || 0}h</span>
                     {s.actualHours != null && <span style={{ color: "#059669", fontWeight: 700 }}>Act: {s.actualHours}h</span>}
                     {s.scheduledDate && <span style={{ color: "#6A1B9A", fontSize: 10 }}>📅 {formatDate(s.scheduledDate)}</span>}
