@@ -208,7 +208,14 @@ function buildEmailHTML({ greeting, sections, cta, footer }) {
 
 const generateId = () => Math.random().toString(36).substr(2, 9);
 const formatCurrency = (n) => `$${(n || 0).toFixed(2)}`;
-const formatDate = (d) => new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+const formatDate = (d) => {
+  // For date-only strings like "2026-03-04", parse manually to avoid UTC timezone shift
+  if (typeof d === "string" && /^\d{4}-\d{2}-\d{2}$/.test(d)) {
+    const [y, m, day] = d.split("-").map(Number);
+    return new Date(y, m - 1, day).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  }
+  return new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+};
 const formatTime = (d) => new Date(d).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
 
 const SPACE_TYPES = [
