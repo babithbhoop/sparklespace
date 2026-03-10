@@ -1104,7 +1104,10 @@ function Dashboard({ data, setCurrentView, openJob, setShowNewJob }) {
   const stats = {
     active: data.jobs.filter((j) => ["assessment", "estimate-sent", "estimate-approved", "schedule-sent", "scheduled", "in-progress"].includes(j.status)).length,
     completed: data.jobs.filter((j) => j.status === "completed" || j.status === "paid").length,
-    revenue: data.jobs.filter((j) => j.status === "paid").reduce((s, j) => s + (j.finalAmount || 0), 0),
+    revenue: data.jobs.filter((j) => j.status === "paid").reduce((s, j) => {
+      const estBased = (j.estimatedHours || 0) * (data.settings?.hourlyRate || DEFAULT_RATE);
+      return s + (j.finalAmount || estBased);
+    }, 0),
     pending: data.jobs.filter((j) => j.status === "invoiced").reduce((s, j) => s + (j.invoiceAmount || 0), 0),
   };
 
@@ -1613,7 +1616,9 @@ function JobDetail({ job, allJobs, updateJob, deleteJob, settings, showToast, se
       jobUpdates.status = "paid";
       jobUpdates.paidAt = new Date().toISOString();
       jobUpdates.actualHours = newSpaces.reduce((sum, s) => sum + (s.actualHours || s.estimatedHours || 0), 0);
-      jobUpdates.finalAmount = jobUpdates.actualHours * settings.hourlyRate;
+      // Bill on estimated hours (actual is for tracking only)
+      const estTotal = newSpaces.reduce((sum, s) => sum + (s.estimatedHours || 0), 0);
+      jobUpdates.finalAmount = estTotal * settings.hourlyRate;
       showToast("All spaces paid! Job marked paid 💰");
     } else if (allCompleted && !allPaid && !["completed", "invoiced", "paid"].includes(job.status)) {
       jobUpdates.status = "completed";
@@ -1733,8 +1738,8 @@ function JobDetail({ job, allJobs, updateJob, deleteJob, settings, showToast, se
   };
 
   const openInvoicePreview = () => {
-    // Use per-space actual hours sum if available, then job-level actual, then estimated
-    const billableHours = totalActualHours > 0 ? totalActualHours : (job.actualHours || job.estimatedHours || 0);
+    // Bill based on ESTIMATED hours (actual is for tracking only)
+    const billableHours = job.estimatedHours || 0;
     let base = billableHours * settings.hourlyRate;
     if (job.discountType === "percent") base -= base * ((job.discountValue || 0) / 100);
     else if (job.discountType === "dollar") base -= (job.discountValue || 0);
@@ -2373,7 +2378,8 @@ function JobDetail({ job, allJobs, updateJob, deleteJob, settings, showToast, se
 
       {/* Invoice Preview Modal — editable amount before submitting */}
       {showInvoicePreview && (() => {
-        const billableHours = totalActualHours > 0 ? totalActualHours : (job.actualHours || job.estimatedHours || 0);
+        // Bill on ESTIMATED hours (actual is for Thea's tracking only)
+        const billableHours = job.estimatedHours || 0;
         const estBase = billableHours * settings.hourlyRate;
         const discount = job.discountType === "percent" ? estBase * ((job.discountValue || 0) / 100) : job.discountType === "dollar" ? (job.discountValue || 0) : 0;
         const afterDiscount = Math.max(0, estBase - discount);
@@ -2387,16 +2393,17 @@ function JobDetail({ job, allJobs, updateJob, deleteJob, settings, showToast, se
               {/* Per-space breakdown */}
               {spaces.length > 0 && (
                 <div style={{ background: "#FFF5F9", borderRadius: 14, padding: 12, marginBottom: 10 }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: "#6B6B6B", marginBottom: 6 }}>Per-space hours:</div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "#6B6B6B", marginBottom: 6 }}>Per-space billing (based on estimated hours):</div>
                   {spaces.map(s => {
                     const sEmoji = SPACE_TYPES.find(t => t.label === s.spaceType)?.emoji || "📦";
-                    const hrs = s.actualHours != null ? s.actualHours : (s.estimatedHours || 0);
+                    const estHrs = s.estimatedHours || 0;
                     return (
                       <div key={s.id} style={{ display: "flex", justifyContent: "space-between", fontSize: 11, padding: "3px 0", borderBottom: "1px solid rgba(255,60,172,0.08)" }}>
                         <span>{sEmoji} {s.spaceType}{s.scheduledDate ? ` (${formatDate(s.scheduledDate)})` : ""}</span>
                         <span style={{ fontWeight: 600 }}>
-                          {s.actualHours != null ? <span style={{ color: "#059669" }}>{s.actualHours}h actual</span> : <span style={{ color: "#FF3CAC" }}>{s.estimatedHours || 0}h est.</span>}
-                          {" = "}{formatCurrency(hrs * settings.hourlyRate)}
+                          <span style={{ color: "#FF3CAC" }}>{estHrs}h</span>
+                          {s.actualHours != null && <span style={{ color: "#6B6B6B", fontSize: 10 }}> ({s.actualHours}h actual)</span>}
+                          {" = "}{formatCurrency(estHrs * settings.hourlyRate)}
                         </span>
                       </div>
                     );
@@ -2432,7 +2439,7 @@ function JobDetail({ job, allJobs, updateJob, deleteJob, settings, showToast, se
                 </div>
                 {totalActualHours > 0 && totalActualHours !== (job.estimatedHours || 0) && (
                   <div style={{ fontSize: 11, color: "#6B6B6B", marginTop: 8, background: "#fff", borderRadius: 8, padding: 8 }}>
-                    💡 Per-space actual total is <strong>{totalActualHours}h</strong> (estimated {job.estimatedHours}h) — adjust the amount below if needed.
+                    💡 Billed on estimated <strong>{job.estimatedHours}h</strong>. Actual time worked was <strong>{totalActualHours}h</strong>. Adjust the amount below if needed.
                   </div>
                 )}
               </div>
@@ -2730,11 +2737,20 @@ function CalendarView({ data, openJob }) {
 function Analytics({ data }) {
   const paid = data.jobs.filter(j => j.status === "paid");
   const completed = data.jobs.filter(j => ["completed", "paid"].includes(j.status));
-  const totalRevenue = paid.reduce((s, j) => s + (j.finalAmount || 0), 0);
-  const totalHours = completed.reduce((s, j) => s + (getEffectiveActualHours(j) || j.estimatedHours || 0), 0);
+  // Revenue based on ESTIMATED hours (billing basis), not actual
+  const totalRevenue = paid.reduce((s, j) => {
+    // Use finalAmount if it was set correctly, otherwise recalculate from estimated
+    const estBased = (j.estimatedHours || 0) * (data.settings?.hourlyRate || DEFAULT_RATE);
+    return s + (j.finalAmount || estBased);
+  }, 0);
+  const totalEstimatedHours = completed.reduce((s, j) => s + (j.estimatedHours || 0), 0);
+  const totalActualHoursAll = completed.reduce((s, j) => s + (getEffectiveActualHours(j) || 0), 0);
   const avgRating = completed.filter(j => j.feedback?.rating).reduce((s, j, _, arr) => s + j.feedback.rating / arr.length, 0);
   const estimateAccuracy = completed.filter(j => (getEffectiveActualHours(j) || j.actualHours) && j.estimatedHours);
   const avgDiff = estimateAccuracy.length ? estimateAccuracy.reduce((s, j) => s + Math.abs((getEffectiveActualHours(j) || j.actualHours) - j.estimatedHours), 0) / estimateAccuracy.length : 0;
+
+  // Unique clients
+  const uniqueClients = [...new Set(data.jobs.map(j => j.clientName?.toLowerCase().trim()).filter(Boolean))];
 
   // Revenue by space type (across all spaces in all paid jobs)
   const revenueByType = {};
@@ -2758,7 +2774,7 @@ function Analytics({ data }) {
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
         {[
           { label: "Total Revenue", value: formatCurrency(totalRevenue), emoji: "💰", color: "#FF3CAC" },
-          { label: "Total Hours", value: `${Math.round(totalHours * 10) / 10}h`, emoji: "⏱️", color: "#A855F7" },
+          { label: "Clients", value: uniqueClients.length, emoji: "👥", color: "#6A1B9A" },
           { label: "Jobs Done", value: completed.length, emoji: "✅", color: "#10B981" },
           { label: "Spaces Done", value: totalSpaces, emoji: "🏠", color: "#FF3CAC" },
           { label: "Avg Rating", value: avgRating ? `${avgRating.toFixed(1)} ⭐` : "—", emoji: "🌟", color: "#F59E0B" },
@@ -2771,6 +2787,28 @@ function Analytics({ data }) {
           </Card>
         ))}
       </div>
+
+      {/* Hours breakdown — estimated vs actual */}
+      <Card style={{ background: "linear-gradient(135deg, #FFF5F9, #FFE0F0)", border: "none" }}>
+        <h3 style={{ fontFamily: "'Nunito', sans-serif", fontSize: 14, fontWeight: 700, margin: "0 0 10px" }}>⏱️ Hours Breakdown</h3>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+          <div style={{ background: "rgba(255,255,255,0.7)", borderRadius: 14, padding: 12, textAlign: "center" }}>
+            <div style={{ fontSize: 11, color: "#6B6B6B", fontWeight: 600 }}>Estimated</div>
+            <div style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 900, color: "#FF3CAC", fontSize: 20 }}>{Math.round(totalEstimatedHours * 10) / 10}h</div>
+            <div style={{ fontSize: 10, color: "#6B6B6B" }}>(billable hours)</div>
+          </div>
+          <div style={{ background: "rgba(255,255,255,0.7)", borderRadius: 14, padding: 12, textAlign: "center" }}>
+            <div style={{ fontSize: 11, color: "#6B6B6B", fontWeight: 600 }}>Actual</div>
+            <div style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 900, color: "#059669", fontSize: 20 }}>{totalActualHoursAll > 0 ? `${Math.round(totalActualHoursAll * 10) / 10}h` : "—"}</div>
+            <div style={{ fontSize: 10, color: "#6B6B6B" }}>(time worked)</div>
+          </div>
+        </div>
+        {totalEstimatedHours > 0 && totalActualHoursAll > 0 && (
+          <div style={{ marginTop: 8, fontSize: 11, textAlign: "center", fontWeight: 600, color: totalActualHoursAll < totalEstimatedHours ? "#059669" : "#E11D48" }}>
+            {totalActualHoursAll < totalEstimatedHours ? `✅ You saved ${(totalEstimatedHours - totalActualHoursAll).toFixed(1)}h vs estimates!` : totalActualHoursAll > totalEstimatedHours ? `⚠️ Went ${(totalActualHoursAll - totalEstimatedHours).toFixed(1)}h over estimates` : "✅ Right on target!"}
+          </div>
+        )}
+      </Card>
 
       {/* Accuracy */}
       {estimateAccuracy.length > 0 && (
@@ -2826,7 +2864,7 @@ function Analytics({ data }) {
         <h3 style={{ fontFamily: "'Nunito', sans-serif", fontSize: 15, fontWeight: 800, margin: "0 0 10px", color: "#2D2D2D" }}>💡 Rate Analysis</h3>
         <div style={{ fontSize: 13, color: "#2D2D2D", lineHeight: 1.6 }}>
           <p style={{ margin: "0 0 8px" }}>Current rate: <strong style={{ color: "#FF0080", fontSize: 17 }}>{formatCurrency(data.settings.hourlyRate)}/hr</strong></p>
-          {totalHours > 0 && <p style={{ margin: "0 0 8px" }}>Effective rate: <strong style={{ color: totalRevenue / totalHours >= data.settings.hourlyRate ? "#059669" : "#DC2626" }}>{formatCurrency(totalRevenue / totalHours)}/hr</strong></p>}
+          {totalEstimatedHours > 0 && <p style={{ margin: "0 0 8px" }}>Effective rate: <strong style={{ color: totalRevenue / totalEstimatedHours >= data.settings.hourlyRate ? "#059669" : "#DC2626" }}>{formatCurrency(totalRevenue / totalEstimatedHours)}/hr</strong></p>}
           {avgDiff > 1 && <p style={{ margin: 0, background: "rgba(255,255,255,0.6)", padding: "8px 12px", borderRadius: 10, fontSize: 12, fontWeight: 600 }}>💡 Your estimates are off by {avgDiff.toFixed(1)}h on average. Consider adjusting base times!</p>}
         </div>
       </Card>
