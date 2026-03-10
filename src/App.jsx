@@ -1105,8 +1105,7 @@ function Dashboard({ data, setCurrentView, openJob, setShowNewJob }) {
     active: data.jobs.filter((j) => ["assessment", "estimate-sent", "estimate-approved", "schedule-sent", "scheduled", "in-progress"].includes(j.status)).length,
     completed: data.jobs.filter((j) => j.status === "completed" || j.status === "paid").length,
     revenue: data.jobs.filter((j) => j.status === "paid").reduce((s, j) => {
-      const estBased = (j.estimatedHours || 0) * (data.settings?.hourlyRate || DEFAULT_RATE);
-      return s + (j.finalAmount || estBased);
+      return s + (j.estimatedHours || 0) * (data.settings?.hourlyRate || DEFAULT_RATE);
     }, 0),
     pending: data.jobs.filter((j) => j.status === "invoiced").reduce((s, j) => s + (j.invoiceAmount || 0), 0),
   };
@@ -2737,11 +2736,9 @@ function CalendarView({ data, openJob }) {
 function Analytics({ data }) {
   const paid = data.jobs.filter(j => j.status === "paid");
   const completed = data.jobs.filter(j => ["completed", "paid"].includes(j.status));
-  // Revenue based on ESTIMATED hours (billing basis), not actual
+  // Revenue based on ESTIMATED hours (billing basis) — always recalculate, don't use stale finalAmount
   const totalRevenue = paid.reduce((s, j) => {
-    // Use finalAmount if it was set correctly, otherwise recalculate from estimated
-    const estBased = (j.estimatedHours || 0) * (data.settings?.hourlyRate || DEFAULT_RATE);
-    return s + (j.finalAmount || estBased);
+    return s + (j.estimatedHours || 0) * (data.settings?.hourlyRate || DEFAULT_RATE);
   }, 0);
   const totalEstimatedHours = completed.reduce((s, j) => s + (j.estimatedHours || 0), 0);
   const totalActualHoursAll = completed.reduce((s, j) => s + (getEffectiveActualHours(j) || 0), 0);
