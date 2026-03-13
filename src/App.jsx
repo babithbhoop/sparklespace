@@ -4,6 +4,22 @@ import { useState, useEffect, useCallback, useRef } from "react";
 const WA_TAX_RATE = 0.1025;
 const DEFAULT_RATE = 22;
 const DEFAULT_TUTORING_RATE = 25;
+const DEFAULT_TUTORING_TIERS = [
+  { minutes: 45, label: "45 min", price: 20 },
+  { minutes: 60, label: "1 hour", price: 30 },
+];
+
+// Calculate tutoring earning for a session based on tier or custom
+function getTutoringEarning(session, settings) {
+  // If session has a fixed earning already stored, use it
+  if (session.earning != null) return session.earning;
+  // Check tier match
+  const tiers = settings?.tutoringTiers || DEFAULT_TUTORING_TIERS;
+  const tier = tiers.find(t => t.minutes === session.duration);
+  if (tier) return tier.price;
+  // Fallback: hours × rate
+  return (session.hours || 0) * (session.rate || settings?.tutoringRate || DEFAULT_TUTORING_RATE);
+}
 const STORAGE_KEY = "sparkle_space_data";
 const SUPABASE_CONFIG_KEY = "sparkle_supabase_config";
 const GDRIVE_CONFIG_KEY = "sparkle_gdrive_config";
@@ -125,6 +141,22 @@ const db = {
   },
   async deletePhotoRef(id) {
     await supaFetch(`photo_refs?id=eq.${id}`, { method: "DELETE" });
+  },
+
+  // Tutoring sessions — stored in app_settings with key "tutoring_sessions"
+  async loadTutoringSessions() {
+    const rows = await supaFetch("app_settings?select=*&key=eq.tutoring_sessions&limit=1");
+    if (rows?.[0]) return JSON.parse(rows[0].data);
+    return [];
+  },
+  async saveTutoringSessions(sessions) {
+    const payload = { key: "tutoring_sessions", data: JSON.stringify(sessions), updated_at: new Date().toISOString() };
+    const existing = await supaFetch("app_settings?key=eq.tutoring_sessions&select=key");
+    if (existing?.length > 0) {
+      await supaFetch("app_settings?key=eq.tutoring_sessions", { method: "PATCH", body: payload });
+    } else {
+      await supaFetch("app_settings", { method: "POST", body: { ...payload, created_at: new Date().toISOString() } });
+    }
   },
 
   // Test connection
@@ -317,7 +349,7 @@ function loadData() {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) return JSON.parse(saved);
   } catch (e) {}
-  return { jobs: [], clients: [], settings: { hourlyRate: DEFAULT_RATE, tutoringRate: DEFAULT_TUTORING_RATE }, feedback: [], tutoringSessions: [] };
+  return { jobs: [], clients: [], settings: { hourlyRate: DEFAULT_RATE, tutoringRate: DEFAULT_TUTORING_RATE, tutoringTiers: DEFAULT_TUTORING_TIERS }, feedback: [], tutoringSessions: [] };
 }
 
 function saveData(data) {
@@ -343,13 +375,14 @@ export default function SparkleSpaceApp() {
     const cfg = getSupabaseConfig();
     if (!cfg) return;
     setSyncing(true);
-    Promise.all([db.loadJobs(), db.loadSettings()])
-      .then(([jobs, settings]) => {
+    Promise.all([db.loadJobs(), db.loadSettings(), db.loadTutoringSessions()])
+      .then(([jobs, settings, tutoringSessions]) => {
         setDbConnected(true);
         setData(prev => ({
           ...prev,
           jobs: jobs.length > 0 ? jobs : prev.jobs,
           settings: settings ? { ...prev.settings, ...settings } : prev.settings,
+          tutoringSessions: tutoringSessions.length > 0 ? tutoringSessions : prev.tutoringSessions,
         }));
       })
       .catch(err => { console.warn("Supabase load failed, using local:", err); setDbConnected(false); })
@@ -368,6 +401,8 @@ export default function SparkleSpaceApp() {
         );
         // Sync settings
         await db.saveSettings(newData.settings).catch(err => console.warn("Settings sync failed:", err));
+        // Sync tutoring sessions
+        await db.saveTutoringSessions(newData.tutoringSessions || []).catch(err => console.warn("Tutoring sync failed:", err));
         // Update local data with any _dbId values from Supabase
         setData(prev => ({ ...prev, jobs: syncedJobs }));
         setDbConnected(true);
@@ -422,11 +457,12 @@ export default function SparkleSpaceApp() {
     if (!cfg) return showToast("Set up database in Settings first!", "error");
     setSyncing(true);
     try {
-      const [jobs, settings] = await Promise.all([db.loadJobs(), db.loadSettings()]);
+      const [jobs, settings, tutoringSessions] = await Promise.all([db.loadJobs(), db.loadSettings(), db.loadTutoringSessions()]);
       setData(prev => ({
         ...prev,
         jobs: jobs.length > 0 ? jobs : prev.jobs,
         settings: settings ? { ...prev.settings, ...settings } : prev.settings,
+        tutoringSessions: tutoringSessions.length > 0 ? tutoringSessions : prev.tutoringSessions,
       }));
       setDbConnected(true);
       showToast("Synced from database! ☁️");
@@ -1130,8 +1166,9 @@ function Dashboard({ data, setCurrentView, openJob, setShowNewJob }) {
   const cleaningRevenue = data.jobs.filter((j) => j.status === "paid").reduce((s, j) => {
     return s + (j.estimatedHours || 0) * (data.settings?.hourlyRate || DEFAULT_RATE);
   }, 0);
-  const tutoringRevenue = (data.tutoringSessions || []).reduce((s, t) => s + (t.hours || 0) * (t.rate || data.settings?.tutoringRate || DEFAULT_TUTORING_RATE), 0);
+  const tutoringRevenue = (data.tutoringSessions || []).reduce((s, t) => s + getTutoringEarning(t, data.settings), 0);
   const totalRevenue = cleaningRevenue + tutoringRevenue;
+  const uniqueStudents = [...new Set((data.tutoringSessions || []).map(t => t.student?.toLowerCase().trim()).filter(Boolean))];
 
   const stats = {
     active: data.jobs.filter((j) => ["assessment", "estimate-sent", "estimate-approved", "schedule-sent", "scheduled", "in-progress"].includes(j.status)).length,
@@ -1192,6 +1229,7 @@ function Dashboard({ data, setCurrentView, openJob, setShowNewJob }) {
             <div style={{ fontSize: 18, marginBottom: 2 }}>📚</div>
             <div style={{ fontFamily: "'Nunito', sans-serif", fontSize: 16, fontWeight: 900, color: "#6A1B9A" }}>{formatCurrency(tutoringRevenue)}</div>
             <div style={{ fontSize: 10, color: "#6B6B6B", fontWeight: 600 }}>Tutoring</div>
+            {uniqueStudents.length > 0 && <div style={{ fontSize: 10, color: "#6A1B9A", fontWeight: 700, marginTop: 2 }}>👨‍🎓 {uniqueStudents.length} student{uniqueStudents.length !== 1 ? "s" : ""}</div>}
           </div>
         </div>
       </Card>
@@ -2651,36 +2689,42 @@ function TimerDisplay({ startTime }) {
 function TutoringPage({ sessions, settings, addSession, updateSession, deleteSession, showToast }) {
   const [showAdd, setShowAdd] = useState(false);
   const [sessionDate, setSessionDate] = useState(new Date().toISOString().split("T")[0]);
-  const [sessionHours, setSessionHours] = useState("");
+  const [sessionDuration, setSessionDuration] = useState(null); // minutes
   const [sessionStudent, setSessionStudent] = useState("");
   const [sessionNotes, setSessionNotes] = useState("");
   const [editingId, setEditingId] = useState(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
 
-  const rate = settings.tutoringRate || DEFAULT_TUTORING_RATE;
-  const totalEarned = sessions.reduce((s, t) => s + (t.hours || 0) * (t.rate || rate), 0);
-  const totalHours = sessions.reduce((s, t) => s + (t.hours || 0), 0);
+  const tiers = settings.tutoringTiers || DEFAULT_TUTORING_TIERS;
+  const totalEarned = sessions.reduce((s, t) => s + getTutoringEarning(t, settings), 0);
+  const totalSessions = sessions.length;
+  const uniqueStudents = [...new Set(sessions.map(t => t.student?.toLowerCase().trim()).filter(Boolean))];
   const thisMonth = sessions.filter(t => {
-    const d = new Date(t.date);
+    if (!t.date) return false;
+    const [y, m] = t.date.split("-").map(Number);
     const now = new Date();
-    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    return m === now.getMonth() + 1 && y === now.getFullYear();
   });
-  const thisMonthEarned = thisMonth.reduce((s, t) => s + (t.hours || 0) * (t.rate || rate), 0);
+  const thisMonthEarned = thisMonth.reduce((s, t) => s + getTutoringEarning(t, settings), 0);
+
+  const getEarningForDuration = (mins) => {
+    const tier = tiers.find(t => t.minutes === mins);
+    return tier ? tier.price : 0;
+  };
 
   const saveSession = () => {
-    if (!sessionDate || !sessionHours) return showToast("Enter date and hours", "error");
-    const hrs = parseFloat(sessionHours);
-    if (hrs <= 0) return showToast("Hours must be positive", "error");
+    if (!sessionDate || !sessionDuration) return showToast("Pick a date and duration", "error");
+    const earning = getEarningForDuration(sessionDuration);
     if (editingId) {
-      updateSession(editingId, { date: sessionDate, hours: hrs, student: sessionStudent.trim(), notes: sessionNotes.trim(), rate });
+      updateSession(editingId, { date: sessionDate, duration: sessionDuration, hours: sessionDuration / 60, earning, student: sessionStudent.trim(), notes: sessionNotes.trim() });
       setEditingId(null);
       showToast("Session updated! 📚");
     } else {
-      addSession({ id: generateId(), date: sessionDate, hours: hrs, student: sessionStudent.trim(), notes: sessionNotes.trim(), rate, createdAt: new Date().toISOString() });
+      addSession({ id: generateId(), date: sessionDate, duration: sessionDuration, hours: sessionDuration / 60, earning, student: sessionStudent.trim(), notes: sessionNotes.trim(), createdAt: new Date().toISOString() });
     }
     setShowAdd(false);
     setSessionDate(new Date().toISOString().split("T")[0]);
-    setSessionHours("");
+    setSessionDuration(null);
     setSessionStudent("");
     setSessionNotes("");
   };
@@ -2688,7 +2732,7 @@ function TutoringPage({ sessions, settings, addSession, updateSession, deleteSes
   const startEdit = (s) => {
     setEditingId(s.id);
     setSessionDate(s.date);
-    setSessionHours(String(s.hours));
+    setSessionDuration(s.duration || (s.hours ? Math.round(s.hours * 60) : null));
     setSessionStudent(s.student || "");
     setSessionNotes(s.notes || "");
     setShowAdd(true);
@@ -2700,7 +2744,7 @@ function TutoringPage({ sessions, settings, addSession, updateSession, deleteSes
     <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <h2 style={{ fontFamily: "'Nunito', sans-serif", fontSize: 22, fontWeight: 900, margin: 0, color: "#2D2D2D" }}>📚 Tutoring</h2>
-        <button onClick={() => { setEditingId(null); setSessionDate(new Date().toISOString().split("T")[0]); setSessionHours(""); setSessionStudent(""); setSessionNotes(""); setShowAdd(true); }} style={{ background: "linear-gradient(135deg, #6A1B9A, #9C27B0)", border: "none", borderRadius: 20, padding: "9px 18px", color: "#fff", fontWeight: 800, fontSize: 12, cursor: "pointer", fontFamily: "'Nunito', sans-serif", boxShadow: "0 4px 12px rgba(106,27,154,0.3)" }}>
+        <button onClick={() => { setEditingId(null); setSessionDate(new Date().toISOString().split("T")[0]); setSessionDuration(null); setSessionStudent(""); setSessionNotes(""); setShowAdd(true); }} style={{ background: "linear-gradient(135deg, #6A1B9A, #9C27B0)", border: "none", borderRadius: 20, padding: "9px 18px", color: "#fff", fontWeight: 800, fontSize: 12, cursor: "pointer", fontFamily: "'Nunito', sans-serif", boxShadow: "0 4px 12px rgba(106,27,154,0.3)" }}>
           + Log Session
         </button>
       </div>
@@ -2710,30 +2754,51 @@ function TutoringPage({ sessions, settings, addSession, updateSession, deleteSes
         <Card style={{ padding: 14, textAlign: "center", background: "linear-gradient(135deg, #F3E8FF, #E8C5F5)", border: "none" }}>
           <div style={{ fontSize: 10, color: "#6B6B6B", fontWeight: 600 }}>This Month</div>
           <div style={{ fontFamily: "'Nunito', sans-serif", fontSize: 20, fontWeight: 900, color: "#6A1B9A" }}>{formatCurrency(thisMonthEarned)}</div>
-          <div style={{ fontSize: 10, color: "#6B6B6B" }}>{thisMonth.length} session{thisMonth.length !== 1 ? "s" : ""} • {thisMonth.reduce((s, t) => s + (t.hours || 0), 0)}h</div>
+          <div style={{ fontSize: 10, color: "#6B6B6B" }}>{thisMonth.length} session{thisMonth.length !== 1 ? "s" : ""}</div>
         </Card>
         <Card style={{ padding: 14, textAlign: "center", background: "linear-gradient(135deg, #FFF5F9, #FFE0F0)", border: "none" }}>
           <div style={{ fontSize: 10, color: "#6B6B6B", fontWeight: 600 }}>All Time</div>
           <div style={{ fontFamily: "'Nunito', sans-serif", fontSize: 20, fontWeight: 900, color: "#FF3CAC" }}>{formatCurrency(totalEarned)}</div>
-          <div style={{ fontSize: 10, color: "#6B6B6B" }}>{sessions.length} session{sessions.length !== 1 ? "s" : ""} • {totalHours}h</div>
+          <div style={{ fontSize: 10, color: "#6B6B6B" }}>{totalSessions} session{totalSessions !== 1 ? "s" : ""} • {uniqueStudents.length} student{uniqueStudents.length !== 1 ? "s" : ""}</div>
         </Card>
       </div>
+
+      {/* Rate tiers display */}
+      <Card style={{ padding: 12, background: "linear-gradient(135deg, #F3E8FF, #FFF5F9)", border: "none" }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: "#6A1B9A", marginBottom: 6 }}>💰 Rate Card</div>
+        <div style={{ display: "flex", gap: 8 }}>
+          {tiers.map(t => (
+            <div key={t.minutes} style={{ flex: 1, background: "rgba(255,255,255,0.7)", borderRadius: 12, padding: "8px 6px", textAlign: "center" }}>
+              <div style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 900, color: "#6A1B9A", fontSize: 18 }}>{formatCurrency(t.price)}</div>
+              <div style={{ fontSize: 10, color: "#6B6B6B", fontWeight: 600 }}>{t.label}</div>
+            </div>
+          ))}
+        </div>
+      </Card>
 
       {/* Add/Edit form */}
       {showAdd && (
         <Card style={{ border: "2px solid #CE93D8" }}>
           <h3 style={{ fontFamily: "'Nunito', sans-serif", fontSize: 15, fontWeight: 800, margin: "0 0 12px", color: "#6A1B9A" }}>{editingId ? "✏️ Edit Session" : "📚 Log Tutoring Session"}</h3>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-            <Input label="Date *" type="date" value={sessionDate} onChange={(e) => setSessionDate(e.target.value)} />
-            <Input label="Hours *" type="number" step="0.25" min="0.25" placeholder="1.5" value={sessionHours} onChange={(e) => setSessionHours(e.target.value)} />
+          <Input label="Date *" type="date" value={sessionDate} onChange={(e) => setSessionDate(e.target.value)} />
+          <div style={{ marginBottom: 14 }}>
+            <label style={{ fontSize: 12, fontWeight: 600, color: "#6B6B6B", marginBottom: 6, display: "block" }}>Duration *</label>
+            <div style={{ display: "flex", gap: 8 }}>
+              {tiers.map(t => (
+                <button key={t.minutes} onClick={() => setSessionDuration(t.minutes)} style={{ flex: 1, padding: "14px 8px", borderRadius: 14, border: sessionDuration === t.minutes ? "2.5px solid #6A1B9A" : "2px solid #E5E7EB", background: sessionDuration === t.minutes ? "linear-gradient(135deg, #F3E8FF, #E8C5F5)" : "#fff", cursor: "pointer", textAlign: "center", transition: "all 0.2s" }}>
+                  <div style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 900, color: sessionDuration === t.minutes ? "#6A1B9A" : "#999", fontSize: 18 }}>{formatCurrency(t.price)}</div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: sessionDuration === t.minutes ? "#6A1B9A" : "#6B6B6B" }}>{t.label}</div>
+                </button>
+              ))}
+            </div>
           </div>
           <Input label="Student Name (optional)" placeholder="e.g. Maya" value={sessionStudent} onChange={(e) => setSessionStudent(e.target.value)} />
           <TextArea label="Notes (optional)" placeholder="What was covered?" value={sessionNotes} onChange={(e) => setSessionNotes(e.target.value)} />
-          {sessionHours && parseFloat(sessionHours) > 0 && (
+          {sessionDuration && (
             <div style={{ background: "#F3E8FF", borderRadius: 12, padding: 10, marginBottom: 10, textAlign: "center" }}>
               <span style={{ fontSize: 12, color: "#6B6B6B" }}>Earning: </span>
-              <span style={{ fontWeight: 800, color: "#6A1B9A", fontSize: 16 }}>{formatCurrency(parseFloat(sessionHours) * rate)}</span>
-              <span style={{ fontSize: 11, color: "#6B6B6B" }}> ({sessionHours}h × {formatCurrency(rate)}/hr)</span>
+              <span style={{ fontWeight: 800, color: "#6A1B9A", fontSize: 18 }}>{formatCurrency(getEarningForDuration(sessionDuration))}</span>
+              <span style={{ fontSize: 11, color: "#6B6B6B" }}> for {tiers.find(t => t.minutes === sessionDuration)?.label || `${sessionDuration}min`}</span>
             </div>
           )}
           <div style={{ display: "flex", gap: 8 }}>
@@ -2753,36 +2818,38 @@ function TutoringPage({ sessions, settings, addSession, updateSession, deleteSes
           <p style={{ fontSize: 13, color: "#6B6B6B", margin: 0 }}>No tutoring sessions yet. Tap "Log Session" to start tracking!</p>
         </Card>
       )}
-      {sorted.map(s => (
-        <Card key={s.id} style={{ padding: 14 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start" }}>
-            <div style={{ flex: 1 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <span style={{ fontWeight: 700, fontSize: 14, color: "#2D2D2D" }}>{formatDate(s.date)}</span>
-                {s.student && <span style={{ fontSize: 10, background: "#F3E8FF", color: "#6A1B9A", padding: "2px 8px", borderRadius: 10, fontWeight: 700 }}>{s.student}</span>}
+      {sorted.map(s => {
+        const earned = getTutoringEarning(s, settings);
+        const tierMatch = tiers.find(t => t.minutes === s.duration);
+        return (
+          <Card key={s.id} style={{ padding: 14 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start" }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                  <span style={{ fontWeight: 700, fontSize: 14, color: "#2D2D2D" }}>{formatDate(s.date)}</span>
+                  {s.student && <span style={{ fontSize: 10, background: "#F3E8FF", color: "#6A1B9A", padding: "2px 8px", borderRadius: 10, fontWeight: 700 }}>{s.student}</span>}
+                  <span style={{ fontSize: 10, background: "#E8C5F5", color: "#6A1B9A", padding: "2px 8px", borderRadius: 10, fontWeight: 700 }}>{tierMatch ? tierMatch.label : `${s.duration || Math.round((s.hours || 0) * 60)}min`}</span>
+                </div>
+                {s.notes && <div style={{ fontSize: 11, color: "#999", marginTop: 3, fontStyle: "italic" }}>{s.notes}</div>}
               </div>
-              <div style={{ fontSize: 12, color: "#6B6B6B", marginTop: 2 }}>
-                {s.hours}h × {formatCurrency(s.rate || rate)}/hr
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 }}>
+                <span style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 900, color: "#6A1B9A", fontSize: 16 }}>{formatCurrency(earned)}</span>
+                <div style={{ display: "flex", gap: 4 }}>
+                  <button onClick={() => startEdit(s)} style={{ background: "none", border: "1px solid #CE93D8", borderRadius: 8, padding: "3px 8px", fontSize: 10, color: "#6A1B9A", fontWeight: 700, cursor: "pointer" }}>✏️</button>
+                  {confirmDeleteId === s.id ? (
+                    <>
+                      <button onClick={() => { deleteSession(s.id); setConfirmDeleteId(null); }} style={{ background: "#FEE2E2", border: "1px solid #FECACA", borderRadius: 8, padding: "3px 8px", fontSize: 10, color: "#DC2626", fontWeight: 700, cursor: "pointer" }}>Yes</button>
+                      <button onClick={() => setConfirmDeleteId(null)} style={{ background: "#F3F4F6", border: "1px solid #E5E7EB", borderRadius: 8, padding: "3px 8px", fontSize: 10, color: "#6B6B6B", fontWeight: 700, cursor: "pointer" }}>No</button>
+                    </>
+                  ) : (
+                    <button onClick={() => setConfirmDeleteId(s.id)} style={{ background: "none", border: "1px solid #FECACA", borderRadius: 8, padding: "3px 8px", fontSize: 10, color: "#DC2626", fontWeight: 700, cursor: "pointer" }}>🗑️</button>
+                  )}
+                </div>
               </div>
-              {s.notes && <div style={{ fontSize: 11, color: "#999", marginTop: 3, fontStyle: "italic" }}>{s.notes}</div>}
             </div>
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 }}>
-              <span style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 900, color: "#6A1B9A", fontSize: 16 }}>{formatCurrency((s.hours || 0) * (s.rate || rate))}</span>
-              <div style={{ display: "flex", gap: 4 }}>
-                <button onClick={() => startEdit(s)} style={{ background: "none", border: "1px solid #CE93D8", borderRadius: 8, padding: "3px 8px", fontSize: 10, color: "#6A1B9A", fontWeight: 700, cursor: "pointer" }}>✏️</button>
-                {confirmDeleteId === s.id ? (
-                  <>
-                    <button onClick={() => { deleteSession(s.id); setConfirmDeleteId(null); }} style={{ background: "#FEE2E2", border: "1px solid #FECACA", borderRadius: 8, padding: "3px 8px", fontSize: 10, color: "#DC2626", fontWeight: 700, cursor: "pointer" }}>Yes</button>
-                    <button onClick={() => setConfirmDeleteId(null)} style={{ background: "#F3F4F6", border: "1px solid #E5E7EB", borderRadius: 8, padding: "3px 8px", fontSize: 10, color: "#6B6B6B", fontWeight: 700, cursor: "pointer" }}>No</button>
-                  </>
-                ) : (
-                  <button onClick={() => setConfirmDeleteId(s.id)} style={{ background: "none", border: "1px solid #FECACA", borderRadius: 8, padding: "3px 8px", fontSize: 10, color: "#DC2626", fontWeight: 700, cursor: "pointer" }}>🗑️</button>
-                )}
-              </div>
-            </div>
-          </div>
-        </Card>
-      ))}
+          </Card>
+        );
+      })}
     </div>
   );
 }
@@ -2929,7 +2996,7 @@ function Analytics({ data }) {
     return s + (j.estimatedHours || 0) * (data.settings?.hourlyRate || DEFAULT_RATE);
   }, 0);
   const tutoringRate = data.settings?.tutoringRate || DEFAULT_TUTORING_RATE;
-  const tutoringRevenue = (data.tutoringSessions || []).reduce((s, t) => s + (t.hours || 0) * (t.rate || tutoringRate), 0);
+  const tutoringRevenue = (data.tutoringSessions || []).reduce((s, t) => s + getTutoringEarning(t, data.settings), 0);
   const totalRevenue = cleaningRevenue + tutoringRevenue;
   const totalEstimatedHours = completed.reduce((s, j) => s + (j.estimatedHours || 0), 0);
   const totalActualHoursAll = completed.reduce((s, j) => s + (getEffectiveActualHours(j) || 0), 0);
@@ -3346,8 +3413,27 @@ Content (HTML): {{{message_html}}}`}
         <h3 style={{ fontFamily: "'Nunito', sans-serif", fontSize: 14, fontWeight: 700, margin: "0 0 10px" }}>💰 Pricing</h3>
         <Input label="Organizing Hourly Rate ($)" type="number" min="1" step="0.50" value={settings.hourlyRate} onChange={(e) => updateSettings({ hourlyRate: parseFloat(e.target.value) || DEFAULT_RATE })} />
         <div style={{ fontSize: 11, color: "#6B6B6B", marginTop: -8, marginBottom: 12 }}>WA sales tax (10.25%) auto-applies for non-cash payments</div>
-        <Input label="Tutoring Hourly Rate ($)" type="number" min="1" step="0.50" value={settings.tutoringRate || DEFAULT_TUTORING_RATE} onChange={(e) => updateSettings({ tutoringRate: parseFloat(e.target.value) || DEFAULT_TUTORING_RATE })} />
-        <div style={{ fontSize: 11, color: "#6B6B6B", marginTop: -8, marginBottom: 4 }}>Rate charged per hour of tutoring</div>
+        <div style={{ fontSize: 12, fontWeight: 700, color: "#6A1B9A", marginBottom: 8 }}>📚 Tutoring Rate Tiers</div>
+        {(settings.tutoringTiers || DEFAULT_TUTORING_TIERS).map((tier, i) => (
+          <div key={i} style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 8 }}>
+            <div style={{ flex: 1 }}>
+              <Input label={`Tier ${i + 1}: Duration (min)`} type="number" min="15" step="15" value={tier.minutes} onChange={(e) => {
+                const tiers = [...(settings.tutoringTiers || DEFAULT_TUTORING_TIERS)];
+                tiers[i] = { ...tiers[i], minutes: parseInt(e.target.value) || 45, label: `${parseInt(e.target.value) || 45} min` };
+                if (tiers[i].minutes >= 60) tiers[i].label = `${tiers[i].minutes / 60} hour${tiers[i].minutes > 60 ? "s" : ""}`;
+                updateSettings({ tutoringTiers: tiers });
+              }} />
+            </div>
+            <div style={{ flex: 1 }}>
+              <Input label={`Price ($)`} type="number" min="1" step="1" value={tier.price} onChange={(e) => {
+                const tiers = [...(settings.tutoringTiers || DEFAULT_TUTORING_TIERS)];
+                tiers[i] = { ...tiers[i], price: parseFloat(e.target.value) || 0 };
+                updateSettings({ tutoringTiers: tiers });
+              }} />
+            </div>
+          </div>
+        ))}
+        <div style={{ fontSize: 11, color: "#6B6B6B", marginTop: -4, marginBottom: 4 }}>Current: {(settings.tutoringTiers || DEFAULT_TUTORING_TIERS).map(t => `${t.label} = ${formatCurrency(t.price)}`).join(" • ")}</div>
       </Card>
       <Card>
         <h3 style={{ fontFamily: "'Nunito', sans-serif", fontSize: 14, fontWeight: 700, margin: "0 0 10px" }}>💳 Payment Integration</h3>
