@@ -951,7 +951,10 @@ function SpaceEditorCard({ space, index, total, onUpdate, onRemove, collapsed, o
               <span style={{ fontSize: 9, background: "#B8F0E0", color: "#00695C", padding: "2px 8px", borderRadius: 10, fontWeight: 800, textTransform: "uppercase" }}>✅ done</span>
             )}
             {space.spaceStatus === "paid" && (
-              <span style={{ fontSize: 9, background: "linear-gradient(135deg, #B8F0E0, #34D399)", color: "#00695C", padding: "2px 8px", borderRadius: 10, fontWeight: 800, textTransform: "uppercase" }}>💰 paid</span>
+              <>
+                <span style={{ fontSize: 9, background: "linear-gradient(135deg, #B8F0E0, #34D399)", color: "#00695C", padding: "2px 8px", borderRadius: 10, fontWeight: 800, textTransform: "uppercase" }}>💰 paid</span>
+                <span style={{ fontSize: 11, fontWeight: 900, color: "#059669" }}>{formatCurrency((space.estimatedHours || hours) * (settings?.hourlyRate || DEFAULT_RATE))}</span>
+              </>
             )}
           </div>
           <div style={{ fontSize: 11, color: "#6B6B6B" }}>
@@ -2828,11 +2831,13 @@ function TutoringPage({ sessions, settings, addSession, updateSession, deleteSes
   const [sessionDuration, setSessionDuration] = useState(null); // minutes
   const [sessionStudent, setSessionStudent] = useState("");
   const [sessionNotes, setSessionNotes] = useState("");
+  const [sessionPaid, setSessionPaid] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
 
   const tiers = settings.tutoringTiers || DEFAULT_TUTORING_TIERS;
   const totalEarned = sessions.reduce((s, t) => s + getTutoringEarning(t, settings), 0);
+  const totalPaid = sessions.filter(t => t.paid).reduce((s, t) => s + getTutoringEarning(t, settings), 0);
   const totalSessions = sessions.length;
   const uniqueStudents = [...new Set(sessions.map(t => t.student?.toLowerCase().trim()).filter(Boolean))];
   const thisMonth = sessions.filter(t => {
@@ -2852,17 +2857,18 @@ function TutoringPage({ sessions, settings, addSession, updateSession, deleteSes
     if (!sessionDate || !sessionDuration) return showToast("Pick a date and duration", "error");
     const earning = getEarningForDuration(sessionDuration);
     if (editingId) {
-      updateSession(editingId, { date: sessionDate, duration: sessionDuration, hours: sessionDuration / 60, earning, student: sessionStudent.trim(), notes: sessionNotes.trim() });
+      updateSession(editingId, { date: sessionDate, duration: sessionDuration, hours: sessionDuration / 60, earning, student: sessionStudent.trim(), notes: sessionNotes.trim(), paid: sessionPaid });
       setEditingId(null);
       showToast("Session updated! 📚");
     } else {
-      addSession({ id: generateId(), date: sessionDate, duration: sessionDuration, hours: sessionDuration / 60, earning, student: sessionStudent.trim(), notes: sessionNotes.trim(), createdAt: new Date().toISOString() });
+      addSession({ id: generateId(), date: sessionDate, duration: sessionDuration, hours: sessionDuration / 60, earning, student: sessionStudent.trim(), notes: sessionNotes.trim(), paid: sessionPaid, createdAt: new Date().toISOString() });
     }
     setShowAdd(false);
     setSessionDate(new Date().toISOString().split("T")[0]);
     setSessionDuration(null);
     setSessionStudent("");
     setSessionNotes("");
+    setSessionPaid(false);
   };
 
   const startEdit = (s) => {
@@ -2871,6 +2877,7 @@ function TutoringPage({ sessions, settings, addSession, updateSession, deleteSes
     setSessionDuration(s.duration || (s.hours ? Math.round(s.hours * 60) : null));
     setSessionStudent(s.student || "");
     setSessionNotes(s.notes || "");
+    setSessionPaid(!!s.paid);
     setShowAdd(true);
   };
 
@@ -2880,7 +2887,7 @@ function TutoringPage({ sessions, settings, addSession, updateSession, deleteSes
     <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <h2 style={{ fontFamily: "'Nunito', sans-serif", fontSize: 22, fontWeight: 900, margin: 0, color: "#2D2D2D" }}>📚 Tutoring</h2>
-        <button onClick={() => { setEditingId(null); setSessionDate(new Date().toISOString().split("T")[0]); setSessionDuration(null); setSessionStudent(""); setSessionNotes(""); setShowAdd(true); }} style={{ background: "linear-gradient(135deg, #6A1B9A, #9C27B0)", border: "none", borderRadius: 20, padding: "9px 18px", color: "#fff", fontWeight: 800, fontSize: 12, cursor: "pointer", fontFamily: "'Nunito', sans-serif", boxShadow: "0 4px 12px rgba(106,27,154,0.3)" }}>
+        <button onClick={() => { setEditingId(null); setSessionDate(new Date().toISOString().split("T")[0]); setSessionDuration(null); setSessionStudent(""); setSessionNotes(""); setSessionPaid(false); setShowAdd(true); }} style={{ background: "linear-gradient(135deg, #6A1B9A, #9C27B0)", border: "none", borderRadius: 20, padding: "9px 18px", color: "#fff", fontWeight: 800, fontSize: 12, cursor: "pointer", fontFamily: "'Nunito', sans-serif", boxShadow: "0 4px 12px rgba(106,27,154,0.3)" }}>
           + Log Session
         </button>
       </div>
@@ -2896,6 +2903,7 @@ function TutoringPage({ sessions, settings, addSession, updateSession, deleteSes
           <div style={{ fontSize: 10, color: "#6B6B6B", fontWeight: 600 }}>All Time</div>
           <div style={{ fontFamily: "'Nunito', sans-serif", fontSize: 20, fontWeight: 900, color: "#FF3CAC" }}>{formatCurrency(totalEarned)}</div>
           <div style={{ fontSize: 10, color: "#6B6B6B" }}>{totalSessions} session{totalSessions !== 1 ? "s" : ""} • {uniqueStudents.length} student{uniqueStudents.length !== 1 ? "s" : ""}</div>
+          {totalPaid > 0 && <div style={{ fontSize: 10, color: "#059669", fontWeight: 700, marginTop: 2 }}>💰 {formatCurrency(totalPaid)} paid • {formatCurrency(totalEarned - totalPaid)} unpaid</div>}
         </Card>
       </div>
 
@@ -2930,6 +2938,16 @@ function TutoringPage({ sessions, settings, addSession, updateSession, deleteSes
           </div>
           <Input label="Student Name (optional)" placeholder="e.g. Maya" value={sessionStudent} onChange={(e) => setSessionStudent(e.target.value)} />
           <TextArea label="Notes (optional)" placeholder="What was covered?" value={sessionNotes} onChange={(e) => setSessionNotes(e.target.value)} />
+          {/* Paid checkbox */}
+          <div onClick={() => setSessionPaid(!sessionPaid)} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", marginBottom: 10, background: sessionPaid ? "#ECFDF5" : "#FFF5F9", borderRadius: 14, border: sessionPaid ? "2px solid #34D399" : "2px solid #E5E7EB", cursor: "pointer", transition: "all 0.2s" }}>
+            <div style={{ width: 24, height: 24, borderRadius: 8, border: sessionPaid ? "2px solid #059669" : "2px solid #D1D5DB", background: sessionPaid ? "linear-gradient(135deg, #34D399, #10B981)" : "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, color: "#fff", fontWeight: 700, transition: "all 0.2s", flexShrink: 0 }}>
+              {sessionPaid && "✓"}
+            </div>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: sessionPaid ? "#059669" : "#6B6B6B" }}>{sessionPaid ? "💰 Paid" : "Mark as Paid"}</div>
+              <div style={{ fontSize: 10, color: "#999" }}>Check if payment has been received</div>
+            </div>
+          </div>
           {sessionDuration && (
             <div style={{ background: "#F3E8FF", borderRadius: 12, padding: 10, marginBottom: 10, textAlign: "center" }}>
               <span style={{ fontSize: 12, color: "#6B6B6B" }}>Earning: </span>
@@ -2958,19 +2976,23 @@ function TutoringPage({ sessions, settings, addSession, updateSession, deleteSes
         const earned = getTutoringEarning(s, settings);
         const tierMatch = tiers.find(t => t.minutes === s.duration);
         return (
-          <Card key={s.id} style={{ padding: 14 }}>
+          <Card key={s.id} style={{ padding: 14, ...(s.paid ? { border: "1px solid #B8F0E0", background: "#FAFFFE" } : {}) }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start" }}>
               <div style={{ flex: 1 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
                   <span style={{ fontWeight: 700, fontSize: 14, color: "#2D2D2D" }}>{formatDate(s.date)}</span>
                   {s.student && <span style={{ fontSize: 10, background: "#F3E8FF", color: "#6A1B9A", padding: "2px 8px", borderRadius: 10, fontWeight: 700 }}>{s.student}</span>}
                   <span style={{ fontSize: 10, background: "#E8C5F5", color: "#6A1B9A", padding: "2px 8px", borderRadius: 10, fontWeight: 700 }}>{tierMatch ? tierMatch.label : `${s.duration || Math.round((s.hours || 0) * 60)}min`}</span>
+                  {s.paid && <span style={{ fontSize: 9, background: "linear-gradient(135deg, #B8F0E0, #34D399)", color: "#00695C", padding: "2px 8px", borderRadius: 10, fontWeight: 800, textTransform: "uppercase" }}>💰 paid</span>}
                 </div>
                 {s.notes && <div style={{ fontSize: 11, color: "#999", marginTop: 3, fontStyle: "italic" }}>{s.notes}</div>}
               </div>
               <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 }}>
-                <span style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 900, color: "#6A1B9A", fontSize: 16 }}>{formatCurrency(earned)}</span>
+                <span style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 900, color: s.paid ? "#059669" : "#6A1B9A", fontSize: 16 }}>{formatCurrency(earned)}</span>
                 <div style={{ display: "flex", gap: 4 }}>
+                  {!s.paid && (
+                    <button onClick={() => updateSession(s.id, { paid: true })} style={{ background: "#ECFDF5", border: "1px solid #B8F0E0", borderRadius: 8, padding: "3px 8px", fontSize: 10, color: "#059669", fontWeight: 700, cursor: "pointer" }}>💰</button>
+                  )}
                   <button onClick={() => startEdit(s)} style={{ background: "none", border: "1px solid #CE93D8", borderRadius: 8, padding: "3px 8px", fontSize: 10, color: "#6A1B9A", fontWeight: 700, cursor: "pointer" }}>✏️</button>
                   {confirmDeleteId === s.id ? (
                     <>
