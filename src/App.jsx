@@ -1075,8 +1075,13 @@ function SpaceEditorCard({ space, index, total, onUpdate, onRemove, collapsed, o
                   </>
                 )}
                 {space.spaceStatus === "paid" && (
-                  <div style={{ flex: 1, background: "linear-gradient(135deg, #ECFDF5, #D1FAE5)", borderRadius: 12, padding: "9px", textAlign: "center", fontSize: 11, fontWeight: 700, color: "#059669" }}>
-                    ✨ Paid {space.paidAt ? `on ${formatDate(space.paidAt.split("T")[0])}` : ""}
+                  <div style={{ flex: 1, display: "flex", gap: 6, alignItems: "center" }}>
+                    <div style={{ flex: 1, background: "linear-gradient(135deg, #ECFDF5, #D1FAE5)", borderRadius: 12, padding: "9px", textAlign: "center", fontSize: 11, fontWeight: 700, color: "#059669" }}>
+                      ✨ Paid {space.paidAt ? `on ${formatDate(space.paidAt.split("T")[0])}` : ""}
+                    </div>
+                    <button onClick={(e) => { e.stopPropagation(); onUpdate({ ...space, spaceStatus: "completed", paidAt: null }); }} style={{ background: "#FFF1F2", border: "1px solid #FECDD3", borderRadius: 12, padding: "9px 12px", color: "#E11D48", fontWeight: 700, fontSize: 11, cursor: "pointer", fontFamily: "'Nunito', sans-serif" }}>
+                      ↩ Undo
+                    </button>
                   </div>
                 )}
               </div>
@@ -1719,9 +1724,16 @@ function JobDetail({ job, allJobs, updateJob, deleteJob, settings, showToast, se
     const newSpace = createEmptySpace();
     const newSpaces = [...spaces, newSpace];
     const newHours = totalSpacesHours(newSpaces);
-    updateJob(job.id, { spaces: newSpaces, estimatedHours: newHours, estimatedCost: newHours * settings.hourlyRate });
+    const updates = { spaces: newSpaces, estimatedHours: newHours, estimatedCost: newHours * settings.hourlyRate };
+    // If job was completed or paid, revert to estimate-approved so new space can go through the flow
+    if (["completed", "invoiced", "paid"].includes(job.status)) {
+      updates.status = "estimate-approved";
+      showToast("Space added! Job reopened for the new space 🏠");
+    } else {
+      showToast("Space added! 🏠");
+    }
+    updateJob(job.id, updates);
     setExpandedSpace(newSpaces.length - 1);
-    showToast("Space added! 🏠");
   };
 
   const removeSpaceFromJob = (index) => {
@@ -2196,6 +2208,21 @@ function JobDetail({ job, allJobs, updateJob, deleteJob, settings, showToast, se
       {/* Actions */}
       <Card>
         <h3 style={{ fontFamily: "'Nunito', sans-serif", fontSize: 14, fontWeight: 700, margin: "0 0 10px" }}>⚡ Actions</h3>
+
+        {/* Per-space status summary */}
+        {spaces.length > 1 && spaces.some(s => s.spaceStatus) && (() => {
+          const pending = spaces.filter(s => !s.spaceStatus || s.spaceStatus === "pending").length;
+          const done = spaces.filter(s => s.spaceStatus === "completed").length;
+          const paid = spaces.filter(s => s.spaceStatus === "paid").length;
+          return (
+            <div style={{ background: "linear-gradient(135deg, #FFF5F9, #E8C5F5)", borderRadius: 14, padding: 10, marginBottom: 8, display: "flex", justifyContent: "space-around", textAlign: "center" }}>
+              {pending > 0 && <div><span style={{ fontSize: 14 }}>🔥</span><div style={{ fontSize: 10, fontWeight: 700, color: "#FF3CAC" }}>{pending} pending</div></div>}
+              {done > 0 && <div><span style={{ fontSize: 14 }}>✅</span><div style={{ fontSize: 10, fontWeight: 700, color: "#059669" }}>{done} done</div></div>}
+              {paid > 0 && <div><span style={{ fontSize: 14 }}>💰</span><div style={{ fontSize: 10, fontWeight: 700, color: "#6A1B9A" }}>{paid} paid</div></div>}
+            </div>
+          );
+        })()}
+
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           {/* Step 1: Assessment — finalize estimate then send to client */}
           {job.status === "assessment" && (
@@ -2274,6 +2301,9 @@ function JobDetail({ job, allJobs, updateJob, deleteJob, settings, showToast, se
               <GradientButton variant="success" onClick={startTimer}>⏱️ Start Timer</GradientButton>
               <button onClick={() => setShowManualTime(true)} style={{ background: "none", border: "1.5px solid #FFB3D1", borderRadius: 14, padding: "10px", color: "#FF0080", fontWeight: 700, fontSize: 12, cursor: "pointer", width: "100%", fontFamily: "'Nunito', sans-serif" }}>
                 🕐 Enter Time Manually
+              </button>
+              <button onClick={() => { updateJob(job.id, { status: "estimate-approved" }); showToast("Back to scheduling — pick new dates! 📅"); }} style={{ background: "none", border: "1.5px solid #E8C5F5", borderRadius: 14, padding: "10px", color: "#6A1B9A", fontWeight: 700, fontSize: 12, cursor: "pointer", width: "100%", fontFamily: "'Nunito', sans-serif" }}>
+                📅 Reschedule Job
               </button>
             </>
           )}
