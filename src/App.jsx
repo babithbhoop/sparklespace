@@ -1448,7 +1448,7 @@ function JobsList({ data, openJob, showNewJob, setShowNewJob, addJob, updateJob,
             </Card>
           )}
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {filtered.map((job) => <JobCard key={job.id} job={job} onClick={() => openJob(job.id)} />)}
+            {filtered.map((job) => <JobCard key={job.id} job={job} onClick={() => openJob(job.id)} settings={settings} />)}
           </div>
         </>
       )}
@@ -1456,9 +1456,11 @@ function JobsList({ data, openJob, showNewJob, setShowNewJob, addJob, updateJob,
   );
 }
 
-function JobCard({ job, onClick }) {
+function JobCard({ job, onClick, settings }) {
   const spaces = job.spaces || [];
   const isCompleted = ["completed", "paid"].includes(job.status);
+  const isPaid = job.status === "paid";
+  const paidAmount = isPaid ? (job.estimatedHours || 0) * (settings?.hourlyRate || DEFAULT_RATE) : 0;
   return (
     <Card onClick={onClick} style={{ padding: 14, position: "relative", overflow: "hidden", ...(isCompleted ? { border: "1px solid #B8F0E0" } : {}) }}>
       {/* Confetti for completed jobs */}
@@ -1476,7 +1478,10 @@ function JobCard({ job, onClick }) {
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start" }}>
             <div style={{ fontWeight: 700, fontSize: 14, color: "#2D2D2D" }}>{job.clientName}</div>
-            <StatusBadge status={job.status} />
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 3 }}>
+              <StatusBadge status={job.status} />
+              {isPaid && <span style={{ fontFamily: "'Nunito', sans-serif", fontSize: 13, fontWeight: 900, color: "#059669" }}>{formatCurrency(paidAmount)}</span>}
+            </div>
           </div>
           <div style={{ fontSize: 12, color: "#6B6B6B", marginTop: 2 }}>
             {spaces.length === 1 ? spaces[0].spaceType : `${spaces.length} spaces`} • {job.estimatedHours}h est.
