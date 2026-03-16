@@ -960,7 +960,7 @@ function SpaceEditorCard({ space, index, total, onUpdate, onRemove, collapsed, o
           </div>
         </div>
         <span style={{ fontSize: 11, color: "#FF0080", fontWeight: 700 }}>{collapsed ? "▼" : "▲"}</span>
-        {total > 1 && (
+        {total > 1 && (!space.spaceStatus || space.spaceStatus !== "paid") && (
           <button onClick={(e) => { e.stopPropagation(); onRemove(); }} style={{ background: "#FFF1F2", border: "1px solid #FECDD3", borderRadius: 8, padding: "4px 8px", fontSize: 11, color: "#E11D48", fontWeight: 700, cursor: "pointer" }}>
             ✕
           </button>
@@ -970,6 +970,41 @@ function SpaceEditorCard({ space, index, total, onUpdate, onRemove, collapsed, o
       {/* Expanded content */}
       {!collapsed && (
         <div style={{ padding: "0 14px 14px" }}>
+          {/* LOCKED: Space is paid — show read-only summary + undo option */}
+          {space.spaceStatus === "paid" && showTimeTracking && (
+            <div style={{ marginTop: 10 }}>
+              <div style={{ background: "linear-gradient(135deg, #ECFDF5, #D1FAE5)", borderRadius: 14, padding: 14, marginBottom: 10, textAlign: "center" }}>
+                <div style={{ fontSize: 14, marginBottom: 4 }}>🔒</div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: "#059669", marginBottom: 4 }}>This space is marked as paid</div>
+                <div style={{ fontSize: 11, color: "#6B6B6B" }}>Undo the paid status to make changes</div>
+              </div>
+              {/* Read-only summary */}
+              <div style={{ background: "#FFF5F9", borderRadius: 14, padding: 12, marginBottom: 10 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, fontSize: 11 }}>
+                  <div><span style={{ color: "#6B6B6B" }}>Type:</span> <strong>{space.spaceType}</strong></div>
+                  <div><span style={{ color: "#6B6B6B" }}>Size:</span> <strong>{space.size}</strong></div>
+                  <div><span style={{ color: "#6B6B6B" }}>Clutter:</span> <strong>{space.clutterLevel}</strong></div>
+                  <div><span style={{ color: "#6B6B6B" }}>Est. hours:</span> <strong>{space.estimatedHours || hours}h</strong></div>
+                  {space.actualHours != null && <div><span style={{ color: "#6B6B6B" }}>Actual:</span> <strong style={{ color: "#059669" }}>{space.actualHours}h</strong></div>}
+                  {space.scheduledDate && <div><span style={{ color: "#6B6B6B" }}>Date:</span> <strong>{formatDate(space.scheduledDate)}</strong></div>}
+                </div>
+                {space.notes && <div style={{ fontSize: 11, color: "#999", marginTop: 6, fontStyle: "italic" }}>📝 {space.notes}</div>}
+              </div>
+              {/* Undo paid button */}
+              <div style={{ display: "flex", gap: 6 }}>
+                <div style={{ flex: 1, background: "linear-gradient(135deg, #ECFDF5, #D1FAE5)", borderRadius: 12, padding: "9px", textAlign: "center", fontSize: 11, fontWeight: 700, color: "#059669" }}>
+                  ✨ Paid {space.paidAt ? `on ${formatDate(space.paidAt.split("T")[0])}` : ""}
+                </div>
+                <button onClick={(e) => { e.stopPropagation(); onUpdate({ ...space, spaceStatus: "completed", paidAt: null }); }} style={{ background: "#FFF1F2", border: "1px solid #FECDD3", borderRadius: 12, padding: "9px 12px", color: "#E11D48", fontWeight: 700, fontSize: 11, cursor: "pointer", fontFamily: "'Nunito', sans-serif" }}>
+                  ↩ Undo Paid
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* EDITABLE: Space is not paid (or no time tracking) — show full editor */}
+          {(space.spaceStatus !== "paid" || !showTimeTracking) && (
+          <>
           <label style={{ fontSize: 11, fontWeight: 600, color: "#6B6B6B", marginBottom: 6, display: "block", marginTop: 10 }}>Space Type</label>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, marginBottom: 12 }}>
             {SPACE_TYPES.map((t) => (
@@ -1087,6 +1122,8 @@ function SpaceEditorCard({ space, index, total, onUpdate, onRemove, collapsed, o
               </div>
             </div>
           )}
+          </>
+          )}
         </div>
       )}
     </div>
@@ -1168,7 +1205,9 @@ function ScheduleDaysEditor({ scheduleDays, totalHours, onChange }) {
 
 // ─── Dashboard ───
 function Dashboard({ data, setCurrentView, openJob, setShowNewJob }) {
-  const cleaningRevenue = data.jobs.filter((j) => j.status === "paid").reduce((s, j) => {
+  const [showEarningsDetail, setShowEarningsDetail] = useState(false);
+  const paidJobs = data.jobs.filter((j) => j.status === "paid");
+  const cleaningRevenue = paidJobs.reduce((s, j) => {
     return s + (j.estimatedHours || 0) * (data.settings?.hourlyRate || DEFAULT_RATE);
   }, 0);
   const tutoringRevenue = (data.tutoringSessions || []).reduce((s, t) => s + getTutoringEarning(t, data.settings), 0);
@@ -1220,23 +1259,85 @@ function Dashboard({ data, setCurrentView, openJob, setShowNewJob }) {
 
       {/* Income Breakdown */}
       <Card style={{ background: "linear-gradient(135deg, #FFF5F9, #FFE0F0, #E8C5F5)", border: "none", padding: 16 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+        <div onClick={() => setShowEarningsDetail(!showEarningsDetail)} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10, cursor: "pointer" }}>
           <h3 style={{ fontFamily: "'Nunito', sans-serif", fontSize: 15, fontWeight: 800, margin: 0, color: "#2D2D2D" }}>💰 Total Earned</h3>
-          <span style={{ fontFamily: "'Nunito', sans-serif", fontSize: 22, fontWeight: 900, color: "#FF0080" }}>{formatCurrency(totalRevenue)}</span>
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <span style={{ fontFamily: "'Nunito', sans-serif", fontSize: 22, fontWeight: 900, color: "#FF0080" }}>{formatCurrency(totalRevenue)}</span>
+            <span style={{ fontSize: 12, color: "#FF0080", fontWeight: 700 }}>{showEarningsDetail ? "▲" : "▼"}</span>
+          </div>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-          <div style={{ background: "rgba(255,255,255,0.7)", borderRadius: 14, padding: 10, textAlign: "center" }}>
+          <div onClick={() => setShowEarningsDetail(!showEarningsDetail)} style={{ background: "rgba(255,255,255,0.7)", borderRadius: 14, padding: 10, textAlign: "center", cursor: "pointer" }}>
             <div style={{ fontSize: 18, marginBottom: 2 }}>🧹</div>
             <div style={{ fontFamily: "'Nunito', sans-serif", fontSize: 16, fontWeight: 900, color: "#FF3CAC" }}>{formatCurrency(cleaningRevenue)}</div>
-            <div style={{ fontSize: 10, color: "#6B6B6B", fontWeight: 600 }}>Cleaning</div>
+            <div style={{ fontSize: 10, color: "#6B6B6B", fontWeight: 600 }}>Cleaning ({paidJobs.length} job{paidJobs.length !== 1 ? "s" : ""})</div>
           </div>
-          <div style={{ background: "rgba(255,255,255,0.7)", borderRadius: 14, padding: 10, textAlign: "center" }}>
+          <div onClick={() => { setShowEarningsDetail(false); setCurrentView("tutoring"); }} style={{ background: "rgba(255,255,255,0.7)", borderRadius: 14, padding: 10, textAlign: "center", cursor: "pointer" }}>
             <div style={{ fontSize: 18, marginBottom: 2 }}>📚</div>
             <div style={{ fontFamily: "'Nunito', sans-serif", fontSize: 16, fontWeight: 900, color: "#6A1B9A" }}>{formatCurrency(tutoringRevenue)}</div>
             <div style={{ fontSize: 10, color: "#6B6B6B", fontWeight: 600 }}>Tutoring</div>
             {uniqueStudents.length > 0 && <div style={{ fontSize: 10, color: "#6A1B9A", fontWeight: 700, marginTop: 2 }}>👨‍🎓 {uniqueStudents.length} student{uniqueStudents.length !== 1 ? "s" : ""}</div>}
           </div>
         </div>
+
+        {/* Expanded: paid jobs list */}
+        {showEarningsDetail && (
+          <div style={{ marginTop: 12, borderTop: "1.5px solid rgba(255,60,172,0.15)", paddingTop: 10 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "#6B6B6B", marginBottom: 8 }}>🧹 Paid Cleaning Jobs:</div>
+            {paidJobs.length === 0 && (
+              <div style={{ fontSize: 12, color: "#999", textAlign: "center", padding: 8 }}>No paid jobs yet</div>
+            )}
+            {paidJobs.map(j => {
+              const estHrs = j.estimatedHours || 0;
+              const amt = estHrs * (data.settings?.hourlyRate || DEFAULT_RATE);
+              return (
+                <div key={j.id} onClick={() => openJob(j.id)} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 10px", marginBottom: 4, background: "rgba(255,255,255,0.7)", borderRadius: 12, cursor: "pointer", transition: "all 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.95)"} onMouseLeave={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.7)"}>
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: 13, color: "#2D2D2D" }}>{j.clientName}</div>
+                    <div style={{ fontSize: 10, color: "#6B6B6B" }}>
+                      {getJobEmojis(j.spaces)} {getJobSummary(j.spaces)} • {estHrs}h × {formatCurrency(data.settings?.hourlyRate || DEFAULT_RATE)}
+                      {j.paidAt && ` • ${formatDate(j.paidAt.split("T")[0])}`}
+                    </div>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    <span style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 900, color: "#FF0080", fontSize: 14 }}>{formatCurrency(amt)}</span>
+                    <span style={{ fontSize: 14, color: "#FFB3D1" }}>→</span>
+                  </div>
+                </div>
+              );
+            })}
+
+            {(data.tutoringSessions || []).length > 0 && (
+              <>
+                <div style={{ fontSize: 11, fontWeight: 700, color: "#6B6B6B", marginTop: 10, marginBottom: 8 }}>📚 Tutoring Sessions:</div>
+                {[...(data.tutoringSessions || [])].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 5).map(t => {
+                  const earned = getTutoringEarning(t, data.settings);
+                  const tiers = data.settings?.tutoringTiers || DEFAULT_TUTORING_TIERS;
+                  const tierMatch = tiers.find(tr => tr.minutes === t.duration);
+                  return (
+                    <div key={t.id} onClick={() => setCurrentView("tutoring")} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 10px", marginBottom: 4, background: "rgba(255,255,255,0.7)", borderRadius: 12, cursor: "pointer" }}>
+                      <div>
+                        <div style={{ fontWeight: 700, fontSize: 13, color: "#2D2D2D" }}>{formatDate(t.date)} {t.student && <span style={{ fontSize: 10, background: "#F3E8FF", color: "#6A1B9A", padding: "1px 6px", borderRadius: 8, fontWeight: 700, marginLeft: 4 }}>{t.student}</span>}</div>
+                        <div style={{ fontSize: 10, color: "#6B6B6B" }}>{tierMatch ? tierMatch.label : `${t.duration || Math.round((t.hours || 0) * 60)}min`}{t.notes ? ` • ${t.notes}` : ""}</div>
+                      </div>
+                      <span style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 900, color: "#6A1B9A", fontSize: 14 }}>{formatCurrency(earned)}</span>
+                    </div>
+                  );
+                })}
+                {(data.tutoringSessions || []).length > 5 && (
+                  <div onClick={() => setCurrentView("tutoring")} style={{ textAlign: "center", fontSize: 11, color: "#6A1B9A", fontWeight: 700, cursor: "pointer", padding: 4 }}>
+                    View all {(data.tutoringSessions || []).length} sessions →
+                  </div>
+                )}
+              </>
+            )}
+
+            <div style={{ display: "flex", justifyContent: "space-between", marginTop: 8, paddingTop: 8, borderTop: "1.5px solid rgba(255,60,172,0.15)", fontSize: 13, fontWeight: 800 }}>
+              <span style={{ color: "#2D2D2D" }}>Grand Total</span>
+              <span style={{ color: "#FF0080" }}>{formatCurrency(totalRevenue)}</span>
+            </div>
+          </div>
+        )}
       </Card>
 
       {/* Stat Tiles */}
